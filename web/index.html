@@ -1927,7 +1927,11 @@
         const data = await res.json();
         if (data.success) {
           playSfx('success');
-          showToast(isEn ? `Launched ${prodName} successfully!` : `Đã mở ${prodName} thành công!`, "success");
+          if (data.already_running) {
+            showToast(isEn ? `${prodName} is already running! Switched to game window.` : `${prodName} đang chạy sẵn! Đã chuyển sang cửa sổ game.`, "info");
+          } else {
+            showToast(isEn ? `Launched ${prodName} successfully!` : `Đã mở ${prodName} thành công!`, "success");
+          }
           fetchStatus();
         } else {
           showToast(data.error || (isEn ? `Could not launch ${prodName}` : `Không thể mở ${prodName}`), "error");

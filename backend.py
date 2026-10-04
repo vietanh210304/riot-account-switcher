@@ -322,47 +322,75 @@ def open_riot_client():
     subprocess.Popen([exe], cwd=str(Path(exe).parent), creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP, close_fds=True)
     return {"success": True}
 
+def focus_game_window(product="league_of_legends"):
+    try:
+        import ctypes
+        prod_id = "league_of_legends" if product in ("lol", "league_of_legends") else "valorant"
+        user32 = ctypes.windll.user32
+        target_titles = ["League of Legends (TM) Client", "League of Legends"] if prod_id == "league_of_legends" else ["VALORANT"]
+
+        found_hwnd = None
+        def enum_windows_callback(hwnd, extra):
+            nonlocal found_hwnd
+            if user32.IsWindowVisible(hwnd):
+                length = user32.GetWindowTextLengthW(hwnd)
+                if length > 0:
+                    buff = ctypes.create_unicode_buffer(length + 1)
+                    user32.GetWindowTextW(hwnd, buff, length + 1)
+                    title = buff.value
+                    for t in target_titles:
+                        if t.lower() in title.lower():
+                            found_hwnd = hwnd
+                            return False
+            return True
+
+        CMPFUNC = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+        user32.EnumWindows(CMPFUNC(enum_windows_callback), 0)
+
+        if found_hwnd:
+            user32.ShowWindow(found_hwnd, 9)  # SW_RESTORE
+            user32.SetForegroundWindow(found_hwnd)
+            return True
+    except Exception:
+        pass
+    return False
+
+def is_game_running(product="league_of_legends"):
+    prod_id = "league_of_legends" if product in ("lol", "league_of_legends") else "valorant"
+    running = get_running_processes()
+    if prod_id == "league_of_legends":
+        lol_procs = ["league of legends.exe", "leagueclient.exe", "leagueclientux.exe", "leagueclientuxrender.exe"]
+        return any(p in running for p in lol_procs)
+    else:
+        val_procs = ["valorant.exe", "valorant-win64-shipping.exe"]
+        return any(p in running for p in val_procs)
+
 def launch_riot_product(product="league_of_legends", patchline="live"):
     # Normalize product
     prod_id = "league_of_legends" if product in ("lol", "league_of_legends") else "valorant"
 
-    lock = read_riot_lockfile()
-    if not lock:
-        # Cold start Riot Client first
-        open_riot_client()
-        for _ in range(25):
-            time.sleep(0.4)
-            lock = read_riot_lockfile()
-            if lock:
-                break
+    # 1. If game is already running, focus window and return already_running
+    if is_game_running(prod_id):
+        focused = focus_game_window(prod_id)
+        return {"success": True, "already_running": True, "product": prod_id, "focused": focused}
 
-    if not lock:
-        return {"success": False, "error": "Riot Client chưa sẵn sàng, hãy thử lại sau giây lát."}
-
-    import urllib.request
-    import ssl
-    auth = base64.b64encode(f"riot:{lock['password']}".encode()).decode()
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-
-    url = f"https://127.0.0.1:{lock['port']}/product-launcher/v1/products/{prod_id}/patchlines/{patchline}"
-    req = urllib.request.Request(
-        url,
-        headers={"Authorization": f"Basic {auth}", "Content-Type": "application/json"},
-        method="POST",
-        data=b"{}"
-    )
+    # 2. Launch via RiotClientServices.exe CLI (Rock-solid official launcher)
+    exe = find_riot_client_services()
+    if not exe:
+        return {"success": False, "error": "Không tìm thấy RiotClientServices.exe"}
 
     try:
-        with urllib.request.urlopen(req, context=ctx, timeout=10) as resp:
-            body = resp.read().decode("utf-8", errors="ignore")
-            return {"success": True, "product": prod_id, "session_id": body.strip('"')}
-    except urllib.error.HTTPError as e:
-        err_msg = e.read().decode("utf-8", errors="ignore")
-        return {"success": False, "error": f"Lỗi khởi chạy ({e.code}): {err_msg}"}
+        DETACHED_PROCESS = 0x00000008
+        CREATE_NEW_PROCESS_GROUP = 0x00000200
+        subprocess.Popen(
+            [exe, f"--launch-product={prod_id}", f"--launch-patchline={patchline}"],
+            cwd=str(Path(exe).parent),
+            creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
+            close_fds=True
+        )
+        return {"success": True, "product": prod_id}
     except Exception as e:
-        return {"success": False, "error": str(e)}
+        return {"success": False, "error": f"Lỗi khởi chạy {prod_id} qua Riot Client: {e}"}
 
 def switch_to_account(account_id, launch_mode="none"):
     snap_dir = SNAPSHOTS_DIR / account_id
