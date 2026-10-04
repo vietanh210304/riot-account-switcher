@@ -1,0 +1,22 @@
+# Build & Distribution
+build/
+dist/
+*.spec
+*.pyc
+__pycache__/
+
+# Local User Data & Session Tokens (Bảo mật thông tin đăng nhập)
+data/
+*.yaml
+*.lock
+*.log
+
+# Temp & Cache
+cache/
+.cache/
+test_*.png
+*raw*.png
+*isolated*.png
+*clean*.png
+*master*.png
+*concept*.png

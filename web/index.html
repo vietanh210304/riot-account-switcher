@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Riot Account Switcher - LMHT & Valorant</title>
+  <link rel="icon" type="image/png" href="/assets/icon_256.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* -------------------------------------------------------------
+       THEME VARIABLES: LEAGUE OF LEGENDS (Hextech Arcana)
+       ------------------------------------------------------------- */
+    :root {
+      --bg-base: #010a13;
+      --bg-surface: #091428;
+      --bg-card: rgba(10, 20, 40, 0.85);
+      --bg-card-hover: rgba(14, 30, 60, 0.95);
+      --bg-overlay: rgba(1, 10, 19, 0.85);
+      --border-color: #785a28;
+      --border-highlight: #c8aa6e;
+      --border-active: #f0e6d2;
+      --text-main: #f0e6d2;
+      --text-sub: #a09b8c;
+      --text-muted: #6b6963;
+      --accent: #c8aa6e;
+      --accent-glow: rgba(200, 170, 110, 0.35);
+      --accent-secondary: #0ac8b9;
+      --accent-secondary-glow: rgba(10, 200, 185, 0.3);
+      --danger: #e84057;
+      --success: #0ac8b9;
+      --font-main: 'Be Vietnam Pro', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      --card-radius: 12px;
+      --btn-radius: 8px;
+      --pill-radius: 14px;
+      --input-radius: 8px;
+      --tag-bg: rgba(200, 170, 110, 0.12);
+      --tag-border: rgba(200, 170, 110, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      font-family: var(--font-main);
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Ambient Hextech Background Grid */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: 
+        radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 32px 32px, 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* -------------------------------------------------------------
+       TOP NAVIGATION BAR
+       ------------------------------------------------------------- */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 28px;
+      background: var(--bg-surface);
+      border-bottom: 2px solid var(--border-color);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-highlight);
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 10px;
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title h1 {
+      font-family: var(--font-main);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-shadow: 0 0 10px var(--accent-glow);
+      line-height: 1.1;
+    }
+
+    .brand-title span {
+      font-size: 11px;
+      letter-spacing: 0.8px;
+      color: var(--text-sub);
+    }
+
+    /* Status Bar in Header */
+    .header-status-box {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #777;
+    }
+
+    .status-dot.active {
+      background: #0ac8b9;
+      box-shadow: 0 0 8px #0ac8b9;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.warning {
+      background: #ff4655;
+      box-shadow: 0 0 8px #ff4655;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    .active-account-badge {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Controls */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* -------------------------------------------------------------
+       MAIN CONTENT CONTAINER
+       ------------------------------------------------------------- */
+    main {
+      flex: 1;
+      position: relative;
+      z-index: 1;
+      max-width: 1240px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 18px 24px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Action Banner Bar */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 10px 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .action-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .action-bar-title {
+      font-family: var(--font-main);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-main);
+    }
+
+    .acc-count-pill {
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      color: var(--accent);
+      padding: 2px 8px;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border-radius: 10px;
+    }
+
+    .action-bar-buttons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Standard App Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-family: var(--font-main);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 8px 14px;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      background: rgba(0, 0, 0, 0.4);
+      color: var(--text-main);
+      border-radius: var(--btn-radius);
+      transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:hover {
+      border-color: var(--border-highlight);
+      box-shadow: 0 0 12px var(--accent-glow);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, #a07830 100%);
+      color: #010a13;
+      border-color: var(--border-active);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 0 16px var(--accent-glow);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      border-color: var(--accent-secondary);
+      color: var(--accent-secondary);
+    }
+    .btn-secondary:hover {
+      background: rgba(10, 200, 185, 0.15);
+      box-shadow: 0 0 12px var(--accent-secondary-glow);
+    }
+
+    .btn-danger {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+    .btn-danger:hover {
+      background: rgba(232, 64, 87, 0.2);
+      box-shadow: 0 0 12px rgba(232, 64, 87, 0.4);
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+
+    /* -------------------------------------------------------------
+       ACCOUNTS GRID
+       ------------------------------------------------------------- */
+    .accounts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 12px;
+    }
+
+    .account-card {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .account-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-highlight);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 0 12px var(--accent-glow);
+    }
+
+    .account-card.is-active {
+      border-color: var(--accent-secondary);
+      box-shadow: 0 0 16px var(--accent-secondary-glow);
+    }
+
+    /* Card Header: Avatar & Info */
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border: 1.5px solid var(--border-highlight);
+      border-radius: 10px;
+      background: #000;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .card-riot-id {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+
+    .card-name {
+      font-family: var(--font-main);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 140px;
+    }
+
+    .card-tag {
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.3px;
+    }
+
+    .card-badges {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .badge-pill {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      padding: 1px 6px;
+      background: var(--tag-bg);
+      border: 1px solid var(--tag-border);
+      color: var(--text-sub);
+      text-transform: uppercase;
+      border-radius: var(--pill-radius);
+    }
+
+    .badge-region {
+      color: var(--accent);
+    }
+
+    .card-note {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-style: italic;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+
+    /* -------------------------------------------------------------
+       HERO ACTIVE ACCOUNT & LAUNCH CONSOLE
+       ------------------------------------------------------------- */
+    .active-launch-console {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border-highlight);
+      border-radius: var(--card-radius);
+      padding: 14px 20px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5), 0 0 16px var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .active-account-display {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .active-avatar-wrap {
+      position: relative;
+      width: 50px;
+      height: 50px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-highlight);
+      background: #000;
+      overflow: hidden;
+      flex-shrink: 0;
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .active-avatar-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .active-info-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .active-label-tag {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .active-name-row {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .active-console-name {
+      font-family: var(--font-main);
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    .active-console-tag {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .active-console-status {
+      font-size: 11.5px;
+      color: var(--accent-secondary);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .active-launch-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-launch-lol-hero {
+      padding: 10px 18px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      background: linear-gradient(135deg, #c8aa6e 0%, #825e24 100%);
+      color: #010a13;
+      border: 1.5px solid #f0e6d2;
+      border-radius: var(--btn-radius);
+      box-shadow: 0 0 12px rgba(200, 170, 110, 0.4);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-launch-lol-hero:hover {
+      box-shadow: 0 0 20px rgba(200, 170, 110, 0.8);
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    .btn-launch-val-hero {
+      padding: 10px 18px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      background: linear-gradient(135deg, #ff4655 0%, #b82b37 100%);
+      color: #fff;
+      border: 1.5px solid #ff4655;
+      border-radius: var(--btn-radius);
+      box-shadow: 0 0 12px rgba(255, 70, 85, 0.4);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-launch-val-hero:hover {
+      box-shadow: 0 0 20px rgba(255, 70, 85, 0.8);
+      transform: translateY(-2px);
+    }
+
+    .btn-launch-client-hero {
+      padding: 10px 14px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-radius: var(--btn-radius);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-launch-client-hero:hover {
+      border-color: var(--border-highlight);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    /* Card Action button inside grid */
+    .card-switch-action {
+      margin-top: 2px;
+    }
+
+    .btn-switch-acc {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border-radius: var(--btn-radius);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+    .btn-switch-acc:hover {
+      background: var(--accent);
+      color: #010a13;
+      border-color: var(--border-highlight);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .card-active-indicator {
+      width: 100%;
+      padding: 6px 8px;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      color: var(--accent-secondary);
+      background: rgba(10, 200, 185, 0.12);
+      border: 1px solid var(--accent-secondary);
+      border-radius: var(--btn-radius);
+    }
+
+    /* Subactions (Delete, Copy ID) */
+    .card-subactions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 6px;
+    }
+
+    .card-subaction-links {
+      display: flex;
+      gap: 8px;
+    }
+
+    .subaction-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: color 0.15s;
+    }
+
+    .subaction-btn:hover {
+      color: var(--text-main);
+    }
+
+    .subaction-btn.delete-btn:hover {
+      color: var(--danger);
+    }
+
+    /* Custom Right-Click Context Menu */
+    .context-menu {
+      position: fixed;
+      z-index: 1000;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-highlight);
+      border-radius: var(--btn-radius);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 16px var(--accent-glow);
+      padding: 6px;
+      min-width: 200px;
+      display: none;
+      backdrop-filter: blur(12px);
+    }
+    .context-menu.show {
+      display: block;
+    }
+    .context-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .context-menu-item:hover {
+      background: rgba(200, 170, 110, 0.18);
+      color: #fff;
+    }
+    .context-menu-item.danger:hover {
+      background: rgba(232, 64, 87, 0.25);
+      color: #ff6b81;
+    }
+    .context-menu-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 4px 0;
+    }
+
+    /* Empty state */
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 60px 20px;
+      text-align: center;
+      background: var(--bg-card);
+      border: 1px dashed var(--border-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .empty-state h3 {
+      font-family: var(--font-main);
+      font-size: 20px;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    .empty-state p {
+      color: var(--text-sub);
+      font-size: 13.5px;
+      max-width: 480px;
+      line-height: 1.5;
+    }
+
+    /* -------------------------------------------------------------
+       MODALS
+       ------------------------------------------------------------- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-overlay);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .modal-dialog {
+      background: var(--bg-surface);
+      border: 2px solid var(--border-highlight);
+      border-radius: var(--card-radius);
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px var(--accent-glow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header h2 {
+      font-family: var(--font-main);
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+    }
+
+    .modal-close-btn:hover {
+      color: #fff;
+    }
+
+    .modal-body {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--text-sub);
+    }
+
+    .form-input {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px 14px;
+      font-size: 13.5px;
+      border-radius: var(--input-radius);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--border-highlight);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .avatar-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .avatar-option {
+      width: 100%;
+      aspect-ratio: 1;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+      overflow: hidden;
+      background: #000;
+      transition: all 0.15s;
+    }
+
+    .avatar-option:hover {
+      border-color: var(--border-highlight);
+      transform: scale(1.05);
+    }
+
+    .avatar-option.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .avatar-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Notification Toasts */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-highlight);
+      color: var(--text-main);
+      padding: 12px 18px;
+      border-radius: var(--btn-radius);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 15px var(--accent-glow);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+      animation: slideIn 0.25s ease;
+      min-width: 260px;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--danger); }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header>
+    <div class="brand-area">
+      <div class="brand-logo-icon" style="padding: 2px; overflow: hidden;">
+        <img src="/assets/icon_256.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;" alt="Logo" />
+      </div>
+      <div class="brand-title">
+        <h1 id="app-title-text">Riot Switcher</h1>
+        <span id="app-sub-text">League & Valorant Fast Swap</span>
+      </div>
+    </div>
+
+    <!-- Live Status Area -->
+    <div class="header-status-box">
+      <div class="status-item" id="riot-status-item">
+        <div class="status-dot" id="riot-status-dot"></div>
+        <span id="riot-status-label">Kiểm tra Riot...</span>
+      </div>
+      <div class="status-item" id="match-status-item" style="display: none;">
+        <div class="status-dot warning"></div>
+        <span style="color: var(--danger); font-weight: 700;">ĐANG TRONG TRẬN</span>
+      </div>
+      <div class="active-account-badge" id="live-account-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+        <span id="live-account-name">Chưa phát hiện</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="header-actions">
+      <button class="btn btn-sm btn-danger" onclick="killRiotProcess()" title="Buộc dừng Riot Client & Games">
+        🛑 Tắt Riot
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN BODY -->
+  <main>
+    <!-- HERO: ACTIVE ACCOUNT & LAUNCH CONSOLE -->
+    <div class="active-launch-console">
+      <div class="active-account-display">
+        <div class="active-avatar-wrap">
+          <img id="active-console-avatar" src="/assets/avatars/jinx.png" alt="Avatar">
+        </div>
+        <div class="active-info-text">
+          <div class="active-label-tag">Tài khoản đang kích hoạt</div>
+          <div class="active-name-row">
+            <span id="active-console-name" class="active-console-name">Đang tải...</span>
+            <span id="active-console-tag" class="active-console-tag"></span>
+            <span id="active-console-region" class="badge-pill badge-region">VN2</span>
+          </div>
+          <div id="active-console-status" class="active-console-status">
+            <span class="status-dot active"></span>
+            <span id="active-console-status-text">Sẵn sàng khởi chạy game</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="active-launch-buttons">
+        <button class="btn-launch-lol-hero" onclick="launchGame('lol')">
+          ⚔️ VÀO LIÊN MINH HUYỀN THOẠI
+        </button>
+        <button class="btn-launch-val-hero" onclick="launchGame('valorant')">
+          🎯 VÀO VALORANT
+        </button>
+        <button class="btn-launch-client-hero" onclick="launchGame('client')" title="Mở cửa sổ Riot Client">
+          ⚡ Mở Riot Client
+        </button>
+      </div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <div class="action-bar-left">
+        <div class="action-bar-title">Danh sách tài khoản</div>
+        <div class="acc-count-pill" id="acc-counter">0 tài khoản</div>
+      </div>
+      <div class="action-bar-buttons">
+        <button class="btn btn-primary" onclick="openCaptureModal()">
+          ⚡ Lưu phiên hiện tại
+        </button>
+        <button class="btn btn-secondary" onclick="openNewSessionModal()">
+          + Thêm tài khoản mới
+        </button>
+        <button class="btn btn-sm" onclick="syncFromTcNo()" title="Nhập danh sách tài khoản từ TcNo Switcher">
+          🔄 Nhập từ TcNo
+        </button>
+      </div>
+    </div>
+
+    <!-- Accounts Grid -->
+    <div class="accounts-grid" id="accounts-container">
+      <!-- Account cards rendered here by JS -->
+    </div>
+  </main>
+
+  <!-- MODAL: CAPTURE CURRENT SESSION -->
+  <div class="modal-backdrop" id="modal-capture">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2>Lưu tài khoản hiện tại</h2>
+        <button class="modal-close-btn" onclick="closeModal('modal-capture')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-sub);">
+          Switcher sẽ đọc phiên đăng nhập Riot đang mở trên máy (đã tích 'Duy trì đăng nhập') và tạo snapshot để đổi nhanh bất cứ lúc nào.
+        </p>
+        <div class="form-group">
+          <label class="form-label">Tên hiển thị / Riot ID</label>
+          <input type="text" class="form-input" id="capture-name" placeholder="Tự động nhận diện từ Riot..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ghi chú (Ví dụ: Main acc, Smurf Kim Cương...)</label>
+          <input type="text" class="form-input" id="capture-note" placeholder="Nhập ghi chú cho tài khoản này..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Chọn Avatar đại diện</label>
+          <div class="avatar-picker-grid" id="capture-avatar-grid">
+            <!-- Avatars populated by JS -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('modal-capture')">Hủy</button>
+        <button class="btn btn-sm btn-primary" onclick="submitCapture()">Xác nhận lưu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD NEW SESSION FLOW -->
+  <div class="modal-backdrop" id="modal-new-session">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2>Thêm tài khoản mới</h2>
+        <button class="modal-close-btn" onclick="closeModal('modal-new-session')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="font-size: 13.5px; line-height: 1.6; color: var(--text-sub);">
+          <p><strong>Bước 1:</strong> Bấm <b>'Mở trang đăng nhập'</b> bên dưới để Switcher làm sạch phiên cũ và khởi chạy Riot Client.</p>
+          <p style="margin-top: 8px;"><strong>Bước 2:</strong> Đăng nhập tài khoản mới và <strong>TÍCH VÀO 'Duy trì đăng nhập' (Stay signed in)</strong>.</p>
+          <p style="margin-top: 8px;"><strong>Bước 3:</strong> Quay lại đây bấm <b>'Đã đăng nhập - Lưu ngay'</b> để hoàn tất.</p>
+        </div>
+        <div id="new-session-polling-box" style="display:none; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--accent); margin-top: 10px;">
+          <div style="display:flex; align-items:center; gap: 10px;">
+            <div class="status-dot active"></div>
+            <span style="font-size: 12px; color: var(--accent);">Đang chờ bạn đăng nhập trên Riot Client...</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('modal-new-session')">Đóng</button>
+        <button class="btn btn-sm btn-secondary" onclick="startNewSessionFlow()" id="btn-start-login">
+          1. Mở trang đăng nhập
+        </button>
+        <button class="btn btn-sm btn-primary" onclick="finishNewSessionFlow()" id="btn-save-new" style="display:none;">
+          2. Đã đăng nhập - Lưu ngay
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: IN-MATCH WARNING -->
+  <div class="modal-backdrop" id="modal-match-warning">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 style="color: var(--danger);">⚠️ Cảnh báo đang trong trận đấu</h2>
+        <button class="modal-close-btn" onclick="closeModal('modal-match-warning')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 14px; line-height: 1.6; color: var(--text-main);">
+          Hệ thống phát hiện bạn <strong>ĐANG TRONG MỘT TRẬN ĐẤU</strong> (LMHT hoặc VALORANT).
+        </p>
+        <p style="font-size: 13px; color: var(--danger); margin-top: 8px;">
+          Nếu đổi tài khoản ngay bây giờ, game sẽ bị đóng đột ngột và bạn có thể bị xử phạt AFK / mất điểm xếp hạng.
+        </p>
+        <p style="font-size: 13px; color: var(--text-sub); margin-top: 8px;">
+          Bạn có chắc chắn muốn buộc đóng trận và chuyển tài khoản không?
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('modal-match-warning')">Quay lại trận đấu</button>
+        <button class="btn btn-sm btn-danger" onclick="confirmSwitchDuringMatch()">Vẫn buộc đóng & Đổi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIRM DELETE -->
+  <div class="modal-backdrop" id="modal-confirm-delete">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header">
+        <h2 style="color: var(--danger);">🗑️ Xác nhận xóa tài khoản</h2>
+        <button class="modal-close-btn" onclick="closeModal('modal-confirm-delete')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 14px; line-height: 1.6; color: var(--text-main);">
+          Bạn có chắc chắn muốn xóa tài khoản <strong id="delete-target-name" style="color: var(--accent);"></strong> khỏi ứng dụng?
+        </p>
+        <p style="font-size: 12.5px; color: var(--text-sub); margin-top: 8px;">
+          Toàn bộ dữ liệu phiên đăng nhập và bản sao lưu của tài khoản này trên máy sẽ bị xóa vĩnh viễn.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('modal-confirm-delete')">Hủy bỏ</button>
+        <button class="btn btn-sm btn-danger" onclick="executeDeleteAccount()">Xác nhận xóa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT ACCOUNT -->
+  <div class="modal-backdrop" id="modal-edit-account">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2>Chỉnh sửa tài khoản</h2>
+        <button class="modal-close-btn" onclick="closeModal('modal-edit-account')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-acc-id" />
+        <div class="form-group">
+          <label class="form-label">Tên hiển thị Riot ID</label>
+          <input type="text" class="form-input" id="edit-acc-name" placeholder="Ví dụ: Capta1n Rosie" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tagline (sau dấu #)</label>
+          <input type="text" class="form-input" id="edit-acc-tag" placeholder="Ví dụ: 2103" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ghi chú tài khoản</label>
+          <input type="text" class="form-input" id="edit-acc-note" placeholder="Nhập ghi chú cho tài khoản này..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Chọn Avatar đại diện</label>
+          <div class="avatar-picker-grid" id="edit-avatar-grid">
+            <!-- Avatars populated by JS -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closeModal('modal-edit-account')">Hủy</button>
+        <button class="btn btn-sm btn-primary" onclick="submitEditAccount()">Lưu thay đổi</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM CONTEXT MENU (CHUỘT PHẢI) -->
+  <div class="context-menu" id="custom-context-menu">
+    <div class="context-menu-item" onclick="onContextEdit()">
+      <span>✏️</span> <span>Đổi tên & Avatar</span>
+    </div>
+    <div class="context-menu-item" id="context-switch-btn" onclick="onContextSwitch()">
+      <span>⚡</span> <span>Chuyển sang tài khoản này</span>
+    </div>
+    <div class="context-menu-item" onclick="onContextCopy()">
+      <span>📋</span> <span>Sao chép Riot ID</span>
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item danger" onclick="onContextDelete()">
+      <span>🗑️</span> <span>Xóa tài khoản</span>
+    </div>
+  </div>
+
+  <!-- TOAST CONTAINER -->
+  <div class="toast-container" id="toasts"></div>
+
+  <!-- SCRIPT -->
+  <script>
+    const API_BASE = "http://127.0.0.1:48200";
+
+    // Champion & Agent Avatars list (12 LoL + 12 Valorant offline local)
+    const AVATARS = [
+      // Liên Minh Huyền Thoại
+      { id: "jinx", name: "Jinx", game: "LoL", url: "/assets/avatars/jinx.png" },
+      { id: "yasuo", name: "Yasuo", game: "LoL", url: "/assets/avatars/yasuo.png" },
+      { id: "ahri", name: "Ahri", game: "LoL", url: "/assets/avatars/ahri.png" },
+      { id: "leesin", name: "Lee Sin", game: "LoL", url: "/assets/avatars/leesin.png" },
+      { id: "zed", name: "Zed", game: "LoL", url: "/assets/avatars/zed.png" },
+      { id: "viego", name: "Viego", game: "LoL", url: "/assets/avatars/viego.png" },
+      { id: "aatrox", name: "Aatrox", game: "LoL", url: "/assets/avatars/aatrox.png" },
+      { id: "akali", name: "Akali", game: "LoL", url: "/assets/avatars/akali.png" },
+      { id: "yone", name: "Yone", game: "LoL", url: "/assets/avatars/yone.png" },
+      { id: "thresh", name: "Thresh", game: "LoL", url: "/assets/avatars/thresh.png" },
+      { id: "lux", name: "Lux", game: "LoL", url: "/assets/avatars/lux.png" },
+      { id: "kaisa", name: "Kai'Sa", game: "LoL", url: "/assets/avatars/kaisa.png" },
+
+      // VALORANT
+      { id: "jett", name: "Jett", game: "VAL", url: "/assets/avatars/jett.png" },
+      { id: "reyna", name: "Reyna", game: "VAL", url: "/assets/avatars/reyna.png" },
+      { id: "omen", name: "Omen", game: "VAL", url: "/assets/avatars/omen.png" },
+      { id: "chamber", name: "Chamber", game: "VAL", url: "/assets/avatars/chamber.png" },
+      { id: "iso", name: "Iso", game: "VAL", url: "/assets/avatars/iso.png" },
+      { id: "clove", name: "Clove", game: "VAL", url: "/assets/avatars/clove.png" },
+      { id: "raze", name: "Raze", game: "VAL", url: "/assets/avatars/raze.png" },
+      { id: "viper", name: "Viper", game: "VAL", url: "/assets/avatars/viper.png" },
+      { id: "sage", name: "Sage", game: "VAL", url: "/assets/avatars/sage.png" },
+      { id: "phoenix", name: "Phoenix", game: "VAL", url: "/assets/avatars/phoenix.png" },
+      { id: "killjoy", name: "Killjoy", game: "VAL", url: "/assets/avatars/killjoy.png" },
+      { id: "cypher", name: "Cypher", game: "VAL", url: "/assets/avatars/cypher.png" }
+    ];
+
+    let currentAccounts = [];
+    let currentLiveStatus = null;
+    let selectedAvatar = "jinx";
+    let editSelectedAvatar = "jinx";
+    let activeContextAccId = null;
+    let pendingSwitchAction = null;
+    let pollingTimer = null;
+
+    // Web Audio Synthesizer SFX
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSfx(type) {
+      try {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'click') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(140, now + 0.06);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+          osc.start(now);
+          osc.stop(now + 0.06);
+        } else if (type === 'swap') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(260, now);
+          osc.frequency.exponentialRampToValueAtTime(620, now + 0.18);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+          osc.start(now);
+          osc.stop(now + 0.18);
+        } else if (type === 'success') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(660, now + 0.08);
+          gain.gain.setValueAtTime(0.14, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        }
+      } catch (e) {}
+    }
+
+    // INITIALIZATION
+    window.addEventListener('DOMContentLoaded', () => {
+      setupAvatarPickers();
+      setupEditAvatarPicker();
+      fetchStatus();
+      fetchAccounts();
+      setInterval(fetchStatus, 3000);
+    });
+
+    // Close custom context menu on outside click or resize
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#custom-context-menu')) {
+        closeContextMenu();
+      }
+    });
+    document.addEventListener('contextmenu', (e) => {
+      if (!e.target.closest('.account-card')) {
+        closeContextMenu();
+      }
+    });
+    window.addEventListener('blur', () => closeContextMenu());
+    window.addEventListener('resize', () => closeContextMenu());
+
+    function setupAvatarPickers() {
+      const grid = document.getElementById('capture-avatar-grid');
+      grid.innerHTML = '';
+      AVATARS.forEach((av, idx) => {
+        const item = document.createElement('div');
+        item.className = 'avatar-option' + (av.id === selectedAvatar ? ' selected' : '');
+        item.innerHTML = `<img src="${av.url}" alt="${av.name}" title="${av.name} (${av.game})" onerror="this.src='/assets/avatars/jinx.png'">`;
+        item.onclick = () => {
+          document.querySelectorAll('#capture-avatar-grid .avatar-option').forEach(el => el.classList.remove('selected'));
+          item.classList.add('selected');
+          selectedAvatar = av.id;
+          playSfx('click');
+        };
+        grid.appendChild(item);
+      });
+    }
+
+    function setupEditAvatarPicker() {
+      const grid = document.getElementById('edit-avatar-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      AVATARS.forEach((av) => {
+        const item = document.createElement('div');
+        item.className = 'avatar-option' + (av.id === editSelectedAvatar ? ' selected' : '');
+        item.id = `edit-av-${av.id}`;
+        item.innerHTML = `<img src="${av.url}" alt="${av.name}" title="${av.name} (${av.game})" onerror="this.src='/assets/avatars/jinx.png'">`;
+        item.onclick = () => {
+          document.querySelectorAll('#edit-avatar-grid .avatar-option').forEach(el => el.classList.remove('selected'));
+          item.classList.add('selected');
+          editSelectedAvatar = av.id;
+          playSfx('click');
+        };
+        grid.appendChild(item);
+      });
+    }
+
+    function renderEditAvatarPicker() {
+      document.querySelectorAll('#edit-avatar-grid .avatar-option').forEach(el => el.classList.remove('selected'));
+      const activeEl = document.getElementById(`edit-av-${editSelectedAvatar}`);
+      if (activeEl) activeEl.classList.add('selected');
+    }
+
+    // API CALLS
+    async function fetchStatus() {
+      try {
+        const res = await fetch(`${API_BASE}/api/status`);
+        const data = await res.json();
+        currentLiveStatus = data;
+        updateStatusUI(data);
+      } catch (err) {
+        console.warn("Status check failed:", err);
+      }
+    }
+
+    function isCurrentActive(acc) {
+      if (!currentLiveStatus || !currentLiveStatus.active_account || !currentLiveStatus.active_account.logged_in) return false;
+      const liveName = (currentLiveStatus.active_account.name || "").toLowerCase();
+      const liveTag = (currentLiveStatus.active_account.tag || "").toLowerCase();
+      return acc.name.toLowerCase() === liveName && (!acc.tag || acc.tag.toLowerCase() === liveTag);
+    }
+
+    function updateStatusUI(data) {
+      const dot = document.getElementById('riot-status-dot');
+      const label = document.getElementById('riot-status-label');
+      const liveAccBox = document.getElementById('live-account-name');
+      const matchItem = document.getElementById('match-status-item');
+
+      if (data.riot_running) {
+        dot.className = 'status-dot active';
+        label.innerText = 'Riot Client đang chạy';
+      } else {
+        dot.className = 'status-dot';
+        label.innerText = 'Riot Client đã tắt';
+      }
+
+      matchItem.style.display = data.match_running ? 'flex' : 'none';
+
+      // Update Hero Console
+      const heroName = document.getElementById('active-console-name');
+      const heroTag = document.getElementById('active-console-tag');
+      const heroRegion = document.getElementById('active-console-region');
+      const heroStatus = document.getElementById('active-console-status-text');
+      const heroAvatar = document.getElementById('active-console-avatar');
+
+      if (data.active_account && data.active_account.logged_in) {
+        const acc = data.active_account;
+        liveAccBox.innerText = `${acc.name} #${acc.tag}`;
+        if (heroName) heroName.innerText = acc.name;
+        if (heroTag) heroTag.innerText = acc.tag ? `#${acc.tag}` : '';
+        if (heroRegion) heroRegion.innerText = acc.region || 'VN2';
+        if (heroStatus) {
+          heroStatus.innerText = data.match_running ? '⚠️ Đang trong trận đấu!' : (data.riot_running ? '🟢 Sẵn sàng chiến game' : '⚪ Sẵn sàng (Riot Client sẽ tự mở)');
+        }
+        const matched = currentAccounts.find(a => a.name.toLowerCase() === acc.name.toLowerCase());
+        if (matched && heroAvatar) {
+          const av = AVATARS.find(v => v.id === matched.avatar);
+          if (av) heroAvatar.src = av.url;
+        }
+      } else {
+        liveAccBox.innerText = 'Chưa đăng nhập';
+        if (heroName) heroName.innerText = 'Chưa có tài khoản';
+        if (heroTag) heroTag.innerText = '';
+        if (heroRegion) heroRegion.innerText = 'VN2';
+        if (heroStatus) heroStatus.innerText = '⚪ Hãy chọn một tài khoản bên dưới để kích hoạt';
+      }
+
+      highlightActiveCard();
+    }
+
+    async function fetchAccounts() {
+      try {
+        const res = await fetch(`${API_BASE}/api/accounts`);
+        const data = await res.json();
+        currentAccounts = data.accounts || [];
+        renderAccounts();
+        if (currentLiveStatus) updateStatusUI(currentLiveStatus);
+      } catch (err) {
+        showToast("Lỗi tải danh sách tài khoản", "error");
+      }
+    }
+
+    function renderAccounts() {
+      const container = document.getElementById('accounts-container');
+      const counter = document.getElementById('acc-counter');
+      counter.innerText = `${currentAccounts.length} tài khoản`;
+
+      if (currentAccounts.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <h3>Chưa có tài khoản nào được lưu</h3>
+            <p>Hãy bấm 'Lưu phiên hiện tại' nếu bạn đang mở Riot Client, hoặc bấm 'Nhập từ TcNo' để tự động nạp các tài khoản đã có sẵn từ trước.</p>
+            <div style="display:flex; gap:10px;">
+              <button class="btn btn-primary" onclick="openCaptureModal()">⚡ Lưu phiên hiện tại</button>
+              <button class="btn btn-secondary" onclick="syncFromTcNo()">🔄 Nhập từ TcNo</button>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      currentAccounts.forEach(acc => {
+        const card = document.createElement('div');
+        card.className = 'account-card';
+        card.id = `card-${acc.id}`;
+        card.oncontextmenu = (e) => {
+          openContextMenu(e, acc.id);
+        };
+
+        const av = AVATARS.find(a => a.id === acc.avatar) || AVATARS[0];
+        const isActive = isCurrentActive(acc);
+
+        card.innerHTML = `
+          <div class="card-top">
+            <div class="avatar-wrapper" onclick="openEditModal('${acc.id}')" title="Chuột phải hoặc bấm để đổi Avatar & Tên" style="cursor: pointer;">
+              <img class="avatar-img" src="${av.url}" alt="${av.name}" onerror="this.src='/assets/avatars/jinx.png'">
+            </div>
+            <div class="card-info">
+              <div class="card-riot-id">
+                <span class="card-name" title="${acc.name}">${acc.name}</span>
+                <span class="card-tag">#${acc.tag}</span>
+              </div>
+              <div class="card-badges">
+                <span class="badge-pill badge-region">${acc.region || 'VN2'}</span>
+                <span class="badge-pill">${timeAgo(acc.last_used)}</span>
+              </div>
+              <div class="card-note" title="${acc.note || ''}">${acc.note || 'Tài khoản Riot'}</div>
+            </div>
+          </div>
+
+          <div class="card-switch-action">
+            ${isActive 
+              ? `<div class="card-active-indicator">✓ ĐANG KÍCH HOẠT</div>`
+              : `<button class="btn-switch-acc" onclick="handleSwitch('${acc.id}')">⚡ Chuyển sang tài khoản này</button>`
+            }
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      highlightActiveCard();
+    }
+
+    function highlightActiveCard() {
+      if (!currentLiveStatus || !currentLiveStatus.active_account || !currentLiveStatus.active_account.logged_in) {
+        document.querySelectorAll('.account-card').forEach(c => c.classList.remove('is-active'));
+        return;
+      }
+      currentAccounts.forEach(acc => {
+        const card = document.getElementById(`card-${acc.id}`);
+        if (!card) return;
+        card.classList.toggle('is-active', isCurrentActive(acc));
+      });
+    }
+
+    // CONTEXT MENU (CHUỘT PHẢI)
+    function openContextMenu(e, accId) {
+      e.preventDefault();
+      e.stopPropagation();
+      activeContextAccId = accId;
+      playSfx('click');
+
+      const menu = document.getElementById('custom-context-menu');
+      const acc = currentAccounts.find(a => a.id === accId);
+      const isActive = isCurrentActive(acc);
+
+      const switchBtn = document.getElementById('context-switch-btn');
+      if (switchBtn) {
+        switchBtn.style.display = isActive ? 'none' : 'flex';
+      }
+
+      menu.style.display = 'block';
+      const menuWidth = 210;
+      const menuHeight = 170;
+      let x = e.clientX;
+      let y = e.clientY;
+      if (x + menuWidth > window.innerWidth) x = window.innerWidth - menuWidth - 10;
+      if (y + menuHeight > window.innerHeight) y = window.innerHeight - menuHeight - 10;
+      menu.style.left = `${Math.max(10, x)}px`;
+      menu.style.top = `${Math.max(10, y)}px`;
+    }
+
+    function closeContextMenu() {
+      const menu = document.getElementById('custom-context-menu');
+      if (menu) menu.style.display = 'none';
+    }
+
+    function onContextEdit() {
+      const id = activeContextAccId;
+      closeContextMenu();
+      if (id) openEditModal(id);
+    }
+
+    function onContextSwitch() {
+      const id = activeContextAccId;
+      closeContextMenu();
+      if (id) handleSwitch(id);
+    }
+
+    function onContextCopy() {
+      const id = activeContextAccId;
+      closeContextMenu();
+      if (!id) return;
+      const acc = currentAccounts.find(a => a.id === id);
+      if (acc) copyRiotId(acc.name, acc.tag);
+    }
+
+    function onContextDelete() {
+      const id = activeContextAccId;
+      closeContextMenu();
+      if (id) deleteAccount(id);
+    }
+
+    // EDIT ACCOUNT (TÊN & AVATAR)
+    function openEditModal(accId) {
+      const acc = currentAccounts.find(a => a.id === accId);
+      if (!acc) return;
+      document.getElementById('edit-acc-id').value = acc.id;
+      document.getElementById('edit-acc-name').value = acc.name || '';
+      document.getElementById('edit-acc-tag').value = acc.tag || '';
+      document.getElementById('edit-acc-note').value = acc.note || '';
+      editSelectedAvatar = acc.avatar || 'jinx';
+      renderEditAvatarPicker();
+      openModal('modal-edit-account');
+    }
+
+    async function submitEditAccount() {
+      const id = document.getElementById('edit-acc-id').value;
+      const name = document.getElementById('edit-acc-name').value.trim();
+      const tag = document.getElementById('edit-acc-tag').value.trim();
+      const note = document.getElementById('edit-acc-note').value.trim();
+
+      if (!name) {
+        showToast("Vui lòng nhập tên tài khoản", "error");
+        return;
+      }
+
+      showToast("Đang lưu thông tin...", "info");
+      try {
+        const res = await fetch(`${API_BASE}/api/accounts/update`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: id,
+            name: name,
+            tag: tag,
+            note: note,
+            avatar: editSelectedAvatar
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          playSfx('success');
+          showToast("Đã cập nhật tên và avatar thành công!", "success");
+          closeModal('modal-edit-account');
+          await fetchAccounts();
+          await fetchStatus();
+        } else {
+          showToast(data.error || "Không thể cập nhật tài khoản", "error");
+        }
+      } catch (err) {
+        showToast("Lỗi kết nối khi cập nhật tài khoản", "error");
+      }
+    }
+
+    // LAUNCH ACTIONS (VIA TOP CONSOLE)
+    function launchGame(product) {
+      playSfx('click');
+      if (currentLiveStatus && currentLiveStatus.match_running && product !== 'client') {
+        pendingSwitchAction = { action: 'launch', product: product };
+        openModal('modal-match-warning');
+        return;
+      }
+      executeLaunch(product);
+    }
+
+    async function executeLaunch(product) {
+      const prodName = product === 'lol' ? 'Liên Minh Huyền Thoại' : (product === 'valorant' ? 'VALORANT' : 'Riot Client');
+      showToast(`Đang mở ${prodName}...`, "info");
+      try {
+        const res = await fetch(`${API_BASE}/api/launch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product: product })
+        });
+        const data = await res.json();
+        if (data.success) {
+          playSfx('success');
+          showToast(`Đã mở ${prodName} thành công!`, "success");
+          fetchStatus();
+        } else {
+          showToast(data.error || `Không thể mở ${prodName}`, "error");
+        }
+      } catch (err) {
+        showToast("Lỗi kết nối khi mở game", "error");
+      }
+    }
+
+    // SWITCH ACCOUNT ACTION
+    function handleSwitch(accId) {
+      playSfx('click');
+      if (currentLiveStatus && currentLiveStatus.match_running) {
+        pendingSwitchAction = { action: 'switch', accId: accId };
+        openModal('modal-match-warning');
+        return;
+      }
+      executeSwitch(accId);
+    }
+
+    function confirmSwitchDuringMatch() {
+      closeModal('modal-match-warning');
+      if (pendingSwitchAction) {
+        if (pendingSwitchAction.action === 'launch') {
+          executeLaunch(pendingSwitchAction.product);
+        } else if (pendingSwitchAction.action === 'switch') {
+          executeSwitch(pendingSwitchAction.accId);
+        }
+        pendingSwitchAction = null;
+      }
+    }
+
+    async function executeSwitch(accId) {
+      showToast("Đang kiểm tra và chuyển tài khoản...", "info");
+      try {
+        const res = await fetch(`${API_BASE}/api/accounts/switch`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: accId, launch: 'none' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          playSfx('success');
+          if (data.already_active) {
+            showToast("Tài khoản này đang được kích hoạt sẵn trên máy!", "info");
+          } else {
+            showToast("Đã chuyển sang tài khoản thành công!", "success");
+          }
+          await fetchStatus();
+          await fetchAccounts();
+        } else {
+          showToast(data.error || "Đổi tài khoản thất bại", "error");
+        }
+      } catch (err) {
+        showToast("Lỗi kết nối khi đổi tài khoản", "error");
+      }
+    }
+
+    async function killRiotProcess() {
+      playSfx('click');
+      try {
+        const res = await fetch(`${API_BASE}/api/kill-riot`, { method: "POST" });
+        const data = await res.json();
+        if (data.success) {
+          showToast("Đã đóng toàn bộ tiến trình Riot", "success");
+          fetchStatus();
+        }
+      } catch (e) {
+        showToast("Lỗi khi đóng Riot", "error");
+      }
+    }
+
+    async function syncFromTcNo() {
+      playSfx('click');
+      showToast("Đang quét tài khoản từ TcNo...", "info");
+      try {
+        const res = await fetch(`${API_BASE}/api/import-tcno`, { method: "POST" });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`Đã nạp thành công ${data.imported} tài khoản từ TcNo!`, "success");
+          fetchAccounts();
+        } else {
+          showToast(data.message || "Không tìm thấy dữ liệu TcNo", "info");
+        }
+      } catch (e) {
+        showToast("Lỗi khi đồng bộ TcNo", "error");
+      }
+    }
+
+    let pendingDeleteAccId = null;
+
+    function deleteAccount(accId) {
+      pendingDeleteAccId = accId;
+      playSfx('click');
+      const acc = currentAccounts.find(a => a.id === accId);
+      const nameEl = document.getElementById('delete-target-name');
+      if (nameEl) {
+        nameEl.innerText = acc ? `${acc.name} #${acc.tag}` : accId;
+      }
+      openModal('modal-confirm-delete');
+    }
+
+    async function executeDeleteAccount() {
+      if (!pendingDeleteAccId) return;
+      const accId = pendingDeleteAccId;
+      closeModal('modal-confirm-delete');
+      playSfx('click');
+      showToast("Đang xóa tài khoản...", "info");
+      try {
+        const res = await fetch(`${API_BASE}/api/accounts/delete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: accId })
+        });
+        const data = await res.json();
+        if (data.success) {
+          playSfx('success');
+          showToast("Đã xóa tài khoản khỏi ứng dụng!", "success");
+          pendingDeleteAccId = null;
+          await fetchAccounts();
+          await fetchStatus();
+        } else {
+          showToast(data.error || "Không thể xóa tài khoản", "error");
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối khi xóa tài khoản", "error");
+      }
+    }
+
+    function copyRiotId(name, tag) {
+      playSfx('click');
+      const text = tag ? `${name}#${tag}` : name;
+      navigator.clipboard.writeText(text);
+      showToast(`Đã copy: ${text}`, "success");
+    }
+
+    // CAPTURE CURRENT MODAL
+    function openCaptureModal() {
+      playSfx('click');
+      if (currentLiveStatus && currentLiveStatus.active_account && currentLiveStatus.active_account.logged_in) {
+        document.getElementById('capture-name').value = `${currentLiveStatus.active_account.name} #${currentLiveStatus.active_account.tag}`;
+      } else {
+        document.getElementById('capture-name').value = '';
+      }
+      openModal('modal-capture');
+    }
+
+    async function submitCapture() {
+      const nameInput = document.getElementById('capture-name').value.trim();
+      const note = document.getElementById('capture-note').value.trim();
+      let customName = null;
+      let customTag = null;
+      if (nameInput.includes('#')) {
+        const parts = nameInput.split('#');
+        customName = parts[0].trim();
+        customTag = parts[1].trim();
+      } else if (nameInput) {
+        customName = nameInput;
+      }
+
+      showToast("Đang lưu snapshot tài khoản...", "info");
+      try {
+        const res = await fetch(`${API_BASE}/api/accounts/capture`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: customName,
+            tag: customTag,
+            note: note,
+            avatar: selectedAvatar,
+            theme_pref: document.documentElement.getAttribute('data-theme')
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          playSfx('success');
+          showToast(`Đã lưu tài khoản ${data.account.name} thành công!`, "success");
+          closeModal('modal-capture');
+          fetchAccounts();
+        } else {
+          showToast(data.error || "Không thể lưu phiên đăng nhập", "error");
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối khi lưu", "error");
+      }
+    }
+
+    // NEW SESSION MODAL
+    function openNewSessionModal() {
+      playSfx('click');
+      document.getElementById('new-session-polling-box').style.display = 'none';
+      document.getElementById('btn-start-login').style.display = 'inline-flex';
+      document.getElementById('btn-save-new').style.display = 'none';
+      openModal('modal-new-session');
+    }
+
+    async function startNewSessionFlow() {
+      playSfx('click');
+      showToast("Đang mở Riot Client để đăng nhập mới...", "info");
+      try {
+        const res = await fetch(`${API_BASE}/api/accounts/new-session`, { method: "POST" });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('new-session-polling-box').style.display = 'block';
+          document.getElementById('btn-start-login').style.display = 'none';
+          document.getElementById('btn-save-new').style.display = 'inline-flex';
+        } else {
+          showToast(data.error || "Không thể mở Riot Client", "error");
+        }
+      } catch (e) {
+        showToast("Lỗi kết nối", "error");
+      }
+    }
+
+    async function finishNewSessionFlow() {
+      playSfx('click');
+      closeModal('modal-new-session');
+      openCaptureModal();
+    }
+
+    // MODAL UTILS
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+    }
+
+    // TOASTS
+    function showToast(msg, type = "info") {
+      const container = document.getElementById('toasts');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerText = msg;
+      container.appendChild(t);
+      setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transform = 'translateY(10px)';
+        t.style.transition = 'all 0.3s ease';
+        setTimeout(() => t.remove(), 300);
+      }, 3500);
+    }
+
+    // TIME AGO HELPER
+    function timeAgo(timestamp) {
+      if (!timestamp) return "Mới tạo";
+      const diff = Math.floor((Date.now() / 1000) - timestamp);
+      if (diff < 60) return "Vừa xong";
+      if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+      return `${Math.floor(diff / 86400)} ngày trước`;
+    }
+  </script>
+</body>
+</html>
