@@ -22,6 +22,10 @@
   </a>
 </p>
 
+<p align="center">
+  <img src="assets/app_preview.png" alt="Riot Account Switcher App Screenshot" width="850">
+</p>
+
 ---
 
 ## 🌟 Key Features

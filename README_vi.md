@@ -22,6 +22,10 @@
   </a>
 </p>
 
+<p align="center">
+  <img src="assets/app_preview.png" alt="Giao diện Riot Account Switcher" width="850">
+</p>
+
 ---
 
 ## 🌟 Tính năng nổi bật
