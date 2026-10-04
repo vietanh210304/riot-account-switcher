@@ -31,7 +31,7 @@
 ## 🌟 Key Features
 
 - ⚡ **One-Click Instant Account Swapping:** Effortlessly switch between Riot Games accounts in seconds without re-entering credentials or 2FA codes.
-- 🎯 **Reliable Game Launching via Local Lockfile REST API:** Directly trigger game launches via Riot Client's internal HTTPS REST API (`POST /product-launcher/v1/products/.../patchlines/live`), bypassing background process locks.
+- 🎯 **Native Game Launching & Auto-Focus:** Seamlessly launch League of Legends or VALORANT using Riot's official CLI launcher (`RiotClientServices.exe`). If the game is already running, it automatically switches and brings the game window to the foreground.
 - 🌐 **Bilingual Support (English & Tiếng Việt):** Instant on-the-fly language toggle between English and Vietnamese across all app screens and dialogs.
 - 🖱️ **Right-Click Context Menu & Inline Editing:**
   - Edit display Riot ID & tagline (`#tag`).

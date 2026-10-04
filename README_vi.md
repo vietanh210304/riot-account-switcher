@@ -31,7 +31,7 @@
 ## 🌟 Tính năng nổi bật
 
 - ⚡ **Hoán đổi tài khoản 1 chạm:** Chuyển đổi giữa các tài khoản Riot Games nhanh chóng chỉ trong vài giây mà không cần nhập lại mật khẩu hay mã xác thực OTP.
-- 🎯 **Khởi chạy game trực tiếp qua Lockfile REST API:** Gọi trực tiếp REST API nội bộ của Riot Client (`POST /product-launcher/v1/products/.../patchlines/live`), mở thẳng LMHT hoặc VALORANT mà không sợ kẹt tiến trình chạy nền.
+- 🎯 **Khởi chạy game & Tự động Focus cửa sổ:** Tích hợp trực tiếp với launcher chính thức `RiotClientServices.exe` của Riot Games để vào Liên Minh Huyền Thoại hoặc VALORANT mượt mà. Nếu game đang chạy sẵn trên máy, ứng dụng sẽ tự động chuyển sang và đưa cửa sổ game lên trên cùng mà không báo lỗi.
 - 🌐 **Hỗ trợ song ngữ (Tiếng Việt & English):** Chuyển đổi ngôn ngữ tức thì chỉ với một cú nhấp chuột trên thanh tiêu đề ứng dụng.
 - 🖱️ **Menu chuột phải tiện lợi (Right-click Context Menu):**
   - Chỉnh sửa tên hiển thị Riot ID & tagline (`#tag`).
