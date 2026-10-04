@@ -962,7 +962,10 @@
 
     <!-- Controls -->
     <div class="header-actions">
-      <button class="btn btn-sm btn-danger" onclick="killRiotProcess()" title="Buộc dừng Riot Client & Games">
+      <button class="btn btn-sm" id="lang-toggle-btn" onclick="toggleLanguage()" title="Switch Language (Tiếng Việt / English)" style="min-width: 80px; font-weight: 600;">
+        🌐 English
+      </button>
+      <button class="btn btn-sm btn-danger" id="btn-kill-riot" onclick="killRiotProcess()" title="Buộc dừng Riot Client & Games">
         🛑 Tắt Riot
       </button>
     </div>
@@ -977,7 +980,7 @@
           <img id="active-console-avatar" src="/assets/avatars/jinx.png" alt="Avatar">
         </div>
         <div class="active-info-text">
-          <div class="active-label-tag">Tài khoản đang kích hoạt</div>
+          <div class="active-label-tag" id="hero-active-label">Tài khoản đang kích hoạt</div>
           <div class="active-name-row">
             <span id="active-console-name" class="active-console-name">Đang tải...</span>
             <span id="active-console-tag" class="active-console-tag"></span>
@@ -991,13 +994,13 @@
       </div>
 
       <div class="active-launch-buttons">
-        <button class="btn-launch-lol-hero" onclick="launchGame('lol')">
+        <button class="btn-launch-lol-hero" id="hero-btn-lol" onclick="launchGame('lol')">
           ⚔️ VÀO LIÊN MINH HUYỀN THOẠI
         </button>
-        <button class="btn-launch-val-hero" onclick="launchGame('valorant')">
+        <button class="btn-launch-val-hero" id="hero-btn-val" onclick="launchGame('valorant')">
           🎯 VÀO VALORANT
         </button>
-        <button class="btn-launch-client-hero" onclick="launchGame('client')" title="Mở cửa sổ Riot Client">
+        <button class="btn-launch-client-hero" id="hero-btn-client" onclick="launchGame('client')" title="Mở cửa sổ Riot Client">
           ⚡ Mở Riot Client
         </button>
       </div>
@@ -1006,17 +1009,17 @@
     <!-- Action Bar -->
     <div class="action-bar">
       <div class="action-bar-left">
-        <div class="action-bar-title">Danh sách tài khoản</div>
+        <div class="action-bar-title" id="action-bar-title">Danh sách tài khoản</div>
         <div class="acc-count-pill" id="acc-counter">0 tài khoản</div>
       </div>
       <div class="action-bar-buttons">
-        <button class="btn btn-primary" onclick="openCaptureModal()">
+        <button class="btn btn-primary" id="btn-capture-modal" onclick="openCaptureModal()">
           ⚡ Lưu phiên hiện tại
         </button>
-        <button class="btn btn-secondary" onclick="openNewSessionModal()">
+        <button class="btn btn-secondary" id="btn-new-modal" onclick="openNewSessionModal()">
           + Thêm tài khoản mới
         </button>
-        <button class="btn btn-sm" onclick="syncFromTcNo()" title="Nhập danh sách tài khoản từ TcNo Switcher">
+        <button class="btn btn-sm" id="btn-sync-tcno" onclick="syncFromTcNo()" title="Nhập danh sách tài khoản từ TcNo Switcher">
           🔄 Nhập từ TcNo
         </button>
       </div>
@@ -1032,31 +1035,31 @@
   <div class="modal-backdrop" id="modal-capture">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h2>Lưu tài khoản hiện tại</h2>
+        <h2 id="modal-capture-title">Lưu tài khoản hiện tại</h2>
         <button class="modal-close-btn" onclick="closeModal('modal-capture')">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 13px; color: var(--text-sub);">
+        <p style="font-size: 13px; color: var(--text-sub);" id="modal-capture-desc">
           Switcher sẽ đọc phiên đăng nhập Riot đang mở trên máy (đã tích 'Duy trì đăng nhập') và tạo snapshot để đổi nhanh bất cứ lúc nào.
         </p>
         <div class="form-group">
-          <label class="form-label">Tên hiển thị / Riot ID</label>
+          <label class="form-label" id="label-capture-name">Tên hiển thị / Riot ID</label>
           <input type="text" class="form-input" id="capture-name" placeholder="Tự động nhận diện từ Riot..." />
         </div>
         <div class="form-group">
-          <label class="form-label">Ghi chú (Ví dụ: Main acc, Smurf Kim Cương...)</label>
+          <label class="form-label" id="label-capture-note">Ghi chú (Ví dụ: Main acc, Smurf Kim Cương...)</label>
           <input type="text" class="form-input" id="capture-note" placeholder="Nhập ghi chú cho tài khoản này..." />
         </div>
         <div class="form-group">
-          <label class="form-label">Chọn Avatar đại diện</label>
+          <label class="form-label" id="label-capture-avatar">Chọn Avatar đại diện</label>
           <div class="avatar-picker-grid" id="capture-avatar-grid">
             <!-- Avatars populated by JS -->
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-sm" onclick="closeModal('modal-capture')">Hủy</button>
-        <button class="btn btn-sm btn-primary" onclick="submitCapture()">Xác nhận lưu</button>
+        <button class="btn btn-sm" id="btn-cancel-capture" onclick="closeModal('modal-capture')">Hủy</button>
+        <button class="btn btn-sm btn-primary" id="btn-submit-capture" onclick="submitCapture()">Xác nhận lưu</button>
       </div>
     </div>
   </div>
@@ -1065,24 +1068,24 @@
   <div class="modal-backdrop" id="modal-new-session">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h2>Thêm tài khoản mới</h2>
+        <h2 id="modal-new-title">Thêm tài khoản mới</h2>
         <button class="modal-close-btn" onclick="closeModal('modal-new-session')">&times;</button>
       </div>
       <div class="modal-body">
         <div style="font-size: 13.5px; line-height: 1.6; color: var(--text-sub);">
-          <p><strong>Bước 1:</strong> Bấm <b>'Mở trang đăng nhập'</b> bên dưới để Switcher làm sạch phiên cũ và khởi chạy Riot Client.</p>
-          <p style="margin-top: 8px;"><strong>Bước 2:</strong> Đăng nhập tài khoản mới và <strong>TÍCH VÀO 'Duy trì đăng nhập' (Stay signed in)</strong>.</p>
-          <p style="margin-top: 8px;"><strong>Bước 3:</strong> Quay lại đây bấm <b>'Đã đăng nhập - Lưu ngay'</b> để hoàn tất.</p>
+          <p id="new-step1-text"><strong>Bước 1:</strong> Bấm <b>'Mở trang đăng nhập'</b> bên dưới để Switcher làm sạch phiên cũ và khởi chạy Riot Client.</p>
+          <p style="margin-top: 8px;" id="new-step2-text"><strong>Bước 2:</strong> Đăng nhập tài khoản mới và <strong>TÍCH VÀO 'Duy trì đăng nhập' (Stay signed in)</strong>.</p>
+          <p style="margin-top: 8px;" id="new-step3-text"><strong>Bước 3:</strong> Quay lại đây bấm <b>'Đã đăng nhập - Lưu ngay'</b> để hoàn tất.</p>
         </div>
         <div id="new-session-polling-box" style="display:none; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--accent); margin-top: 10px;">
           <div style="display:flex; align-items:center; gap: 10px;">
             <div class="status-dot active"></div>
-            <span style="font-size: 12px; color: var(--accent);">Đang chờ bạn đăng nhập trên Riot Client...</span>
+            <span style="font-size: 12px; color: var(--accent);" id="new-waiting-text">Đang chờ bạn đăng nhập trên Riot Client...</span>
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-sm" onclick="closeModal('modal-new-session')">Đóng</button>
+        <button class="btn btn-sm" id="btn-close-new" onclick="closeModal('modal-new-session')">Đóng</button>
         <button class="btn btn-sm btn-secondary" onclick="startNewSessionFlow()" id="btn-start-login">
           1. Mở trang đăng nhập
         </button>
@@ -1097,23 +1100,23 @@
   <div class="modal-backdrop" id="modal-match-warning">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h2 style="color: var(--danger);">⚠️ Cảnh báo đang trong trận đấu</h2>
+        <h2 style="color: var(--danger);" id="modal-match-title">⚠️ Cảnh báo đang trong trận đấu</h2>
         <button class="modal-close-btn" onclick="closeModal('modal-match-warning')">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 14px; line-height: 1.6; color: var(--text-main);">
+        <p style="font-size: 14px; line-height: 1.6; color: var(--text-main);" id="modal-match-p1">
           Hệ thống phát hiện bạn <strong>ĐANG TRONG MỘT TRẬN ĐẤU</strong> (LMHT hoặc VALORANT).
         </p>
-        <p style="font-size: 13px; color: var(--danger); margin-top: 8px;">
+        <p style="font-size: 13px; color: var(--danger); margin-top: 8px;" id="modal-match-p2">
           Nếu đổi tài khoản ngay bây giờ, game sẽ bị đóng đột ngột và bạn có thể bị xử phạt AFK / mất điểm xếp hạng.
         </p>
-        <p style="font-size: 13px; color: var(--text-sub); margin-top: 8px;">
+        <p style="font-size: 13px; color: var(--text-sub); margin-top: 8px;" id="modal-match-p3">
           Bạn có chắc chắn muốn buộc đóng trận và chuyển tài khoản không?
         </p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-sm" onclick="closeModal('modal-match-warning')">Quay lại trận đấu</button>
-        <button class="btn btn-sm btn-danger" onclick="confirmSwitchDuringMatch()">Vẫn buộc đóng & Đổi</button>
+        <button class="btn btn-sm" id="btn-back-match" onclick="closeModal('modal-match-warning')">Quay lại trận đấu</button>
+        <button class="btn btn-sm btn-danger" id="btn-force-switch" onclick="confirmSwitchDuringMatch()">Vẫn buộc đóng & Đổi</button>
       </div>
     </div>
   </div>
@@ -1122,20 +1125,20 @@
   <div class="modal-backdrop" id="modal-confirm-delete">
     <div class="modal-dialog" style="max-width: 440px;">
       <div class="modal-header">
-        <h2 style="color: var(--danger);">🗑️ Xác nhận xóa tài khoản</h2>
+        <h2 style="color: var(--danger);" id="modal-delete-title">🗑️ Xác nhận xóa tài khoản</h2>
         <button class="modal-close-btn" onclick="closeModal('modal-confirm-delete')">&times;</button>
       </div>
       <div class="modal-body">
         <p style="font-size: 14px; line-height: 1.6; color: var(--text-main);">
-          Bạn có chắc chắn muốn xóa tài khoản <strong id="delete-target-name" style="color: var(--accent);"></strong> khỏi ứng dụng?
+          <span id="modal-delete-p1">Bạn có chắc chắn muốn xóa tài khoản</span> <strong id="delete-target-name" style="color: var(--accent);"></strong> <span id="modal-delete-p2">khỏi ứng dụng?</span>
         </p>
-        <p style="font-size: 12.5px; color: var(--text-sub); margin-top: 8px;">
+        <p style="font-size: 12.5px; color: var(--text-sub); margin-top: 8px;" id="modal-delete-sub">
           Toàn bộ dữ liệu phiên đăng nhập và bản sao lưu của tài khoản này trên máy sẽ bị xóa vĩnh viễn.
         </p>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-sm" onclick="closeModal('modal-confirm-delete')">Hủy bỏ</button>
-        <button class="btn btn-sm btn-danger" onclick="executeDeleteAccount()">Xác nhận xóa</button>
+        <button class="btn btn-sm" id="btn-cancel-delete" onclick="closeModal('modal-confirm-delete')">Hủy bỏ</button>
+        <button class="btn btn-sm btn-danger" id="btn-confirm-delete" onclick="executeDeleteAccount()">Xác nhận xóa</button>
       </div>
     </div>
   </div>
@@ -1144,50 +1147,50 @@
   <div class="modal-backdrop" id="modal-edit-account">
     <div class="modal-dialog">
       <div class="modal-header">
-        <h2>Chỉnh sửa tài khoản</h2>
+        <h2 id="modal-edit-title">Chỉnh sửa tài khoản</h2>
         <button class="modal-close-btn" onclick="closeModal('modal-edit-account')">&times;</button>
       </div>
       <div class="modal-body">
         <input type="hidden" id="edit-acc-id" />
         <div class="form-group">
-          <label class="form-label">Tên hiển thị Riot ID</label>
+          <label class="form-label" id="label-edit-name">Tên hiển thị Riot ID</label>
           <input type="text" class="form-input" id="edit-acc-name" placeholder="Ví dụ: Capta1n Rosie" />
         </div>
         <div class="form-group">
-          <label class="form-label">Tagline (sau dấu #)</label>
+          <label class="form-label" id="label-edit-tag">Tagline (sau dấu #)</label>
           <input type="text" class="form-input" id="edit-acc-tag" placeholder="Ví dụ: 2103" />
         </div>
         <div class="form-group">
-          <label class="form-label">Ghi chú tài khoản</label>
+          <label class="form-label" id="label-edit-note">Ghi chú tài khoản</label>
           <input type="text" class="form-input" id="edit-acc-note" placeholder="Nhập ghi chú cho tài khoản này..." />
         </div>
         <div class="form-group">
-          <label class="form-label">Chọn Avatar đại diện</label>
+          <label class="form-label" id="label-edit-avatar">Chọn Avatar đại diện</label>
           <div class="avatar-picker-grid" id="edit-avatar-grid">
             <!-- Avatars populated by JS -->
           </div>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-sm" onclick="closeModal('modal-edit-account')">Hủy</button>
-        <button class="btn btn-sm btn-primary" onclick="submitEditAccount()">Lưu thay đổi</button>
+        <button class="btn btn-sm" id="btn-cancel-edit" onclick="closeModal('modal-edit-account')">Hủy</button>
+        <button class="btn btn-sm btn-primary" id="btn-submit-edit" onclick="submitEditAccount()">Lưu thay đổi</button>
       </div>
     </div>
   </div>
 
   <!-- CUSTOM CONTEXT MENU (CHUỘT PHẢI) -->
   <div class="context-menu" id="custom-context-menu">
-    <div class="context-menu-item" onclick="onContextEdit()">
+    <div class="context-menu-item" id="ctx-item-edit" onclick="onContextEdit()">
       <span>✏️</span> <span>Đổi tên & Avatar</span>
     </div>
     <div class="context-menu-item" id="context-switch-btn" onclick="onContextSwitch()">
-      <span>⚡</span> <span>Chuyển sang tài khoản này</span>
+      <span>⚡</span> <span id="ctx-item-switch">Chuyển sang tài khoản này</span>
     </div>
-    <div class="context-menu-item" onclick="onContextCopy()">
+    <div class="context-menu-item" id="ctx-item-copy" onclick="onContextCopy()">
       <span>📋</span> <span>Sao chép Riot ID</span>
     </div>
     <div class="context-menu-divider"></div>
-    <div class="context-menu-item danger" onclick="onContextDelete()">
+    <div class="context-menu-item danger" id="ctx-item-delete" onclick="onContextDelete()">
       <span>🗑️</span> <span>Xóa tài khoản</span>
     </div>
   </div>
@@ -1237,6 +1240,298 @@
     let activeContextAccId = null;
     let pendingSwitchAction = null;
     let pollingTimer = null;
+    let currentLang = localStorage.getItem('app_lang') || 'vi';
+
+    // TRANSLATIONS (Song ngữ VI & EN)
+    const TRANSLATIONS = {
+      vi: {
+        appSub: "Chuyển tài khoản LMHT & Valorant",
+        riotRunning: "Riot Client đang chạy",
+        riotClosed: "Riot Client đã tắt",
+        matchWarningPill: "ĐANG TRONG TRẬN",
+        noAccount: "Chưa phát hiện",
+        noAccountSub: "⚪ Hãy chọn một tài khoản bên dưới để kích hoạt",
+        readyPlay: "🟢 Sẵn sàng chiến game",
+        readyPlayClientClosed: "⚪ Sẵn sàng (Riot Client sẽ tự mở)",
+        inMatchActive: "⚠️ Đang trong trận đấu!",
+        activeLabel: "Tài khoản đang kích hoạt",
+        launchLol: "⚔️ VÀO LIÊN MINH HUYỀN THOẠI",
+        launchVal: "🎯 VÀO VALORANT",
+        launchClient: "⚡ Mở Riot Client",
+        savedAccounts: "Danh sách tài khoản",
+        accCount: (n) => `${n} tài khoản`,
+        btnCapture: "⚡ Lưu phiên hiện tại",
+        btnNewSession: "+ Thêm tài khoản mới",
+        btnSyncTcNo: "🔄 Nhập từ TcNo",
+        btnKillRiot: "🛑 Tắt Riot",
+        btnSwitch: "⚡ Chuyển sang tài khoản này",
+        badgeActive: "✓ ĐANG KÍCH HOẠT",
+        defaultNote: "Tài khoản Riot",
+        modalCaptureTitle: "Lưu tài khoản hiện tại",
+        modalCaptureDesc: "Switcher sẽ đọc phiên đăng nhập Riot đang mở trên máy (đã tích 'Duy trì đăng nhập') và tạo snapshot để đổi nhanh bất cứ lúc nào.",
+        labelDisplayName: "Tên hiển thị / Riot ID",
+        phCaptureName: "Tự động nhận diện từ Riot...",
+        labelNote: "Ghi chú tài khoản",
+        phCaptureNote: "Nhập ghi chú cho tài khoản này...",
+        labelAvatar: "Chọn Avatar đại diện",
+        btnCancel: "Hủy",
+        btnConfirmSave: "Xác nhận lưu",
+        modalNewTitle: "Thêm tài khoản mới",
+        step1: "Bấm 'Mở trang đăng nhập' bên dưới để Switcher làm sạch phiên cũ và khởi chạy Riot Client.",
+        step2: "Đăng nhập tài khoản mới và TÍCH VÀO 'Duy trì đăng nhập' (Stay signed in).",
+        step3: "Quay lại đây bấm 'Đã đăng nhập - Lưu ngay' để hoàn tất.",
+        waitingLogin: "Đang chờ bạn đăng nhập trên Riot Client...",
+        btnClose: "Đóng",
+        btnStartLogin: "1. Mở trang đăng nhập",
+        btnSaveNew: "2. Đã đăng nhập - Lưu ngay",
+        modalMatchTitle: "⚠️ Cảnh báo đang trong trận đấu",
+        modalMatchBody1: "Hệ thống phát hiện bạn ĐANG TRONG MỘT TRẬN ĐẤU (LMHT hoặc VALORANT).",
+        modalMatchBody2: "Nếu đổi tài khoản ngay bây giờ, game sẽ bị đóng đột ngột và bạn có thể bị xử phạt AFK / mất điểm xếp hạng.",
+        modalMatchBody3: "Bạn có chắc chắn muốn buộc đóng trận và chuyển tài khoản không?",
+        btnBackMatch: "Quay lại trận đấu",
+        btnForceSwitch: "Vẫn buộc đóng & Đổi",
+        modalDeleteTitle: "🗑️ Xác nhận xóa tài khoản",
+        modalDeleteBody1: "Bạn có chắc chắn muốn xóa tài khoản",
+        modalDeleteBody2: "khỏi ứng dụng?",
+        modalDeleteSub: "Toàn bộ dữ liệu phiên đăng nhập và bản sao lưu của tài khoản này trên máy sẽ bị xóa vĩnh viễn.",
+        btnConfirmDelete: "Xác nhận xóa",
+        modalEditTitle: "Chỉnh sửa tài khoản",
+        labelTagline: "Tagline (sau dấu #)",
+        btnSaveChanges: "Lưu thay đổi",
+        ctxEdit: "Đổi tên & Avatar",
+        ctxSwitch: "Chuyển sang tài khoản này",
+        ctxCopy: "Sao chép Riot ID",
+        ctxDelete: "Xóa tài khoản",
+        toastSwitching: "Đang chuyển đổi tài khoản...",
+        toastSwitched: "Chuyển tài khoản thành công!",
+        toastCopied: "Đã sao chép Riot ID!",
+        toastLaunchingLol: "Đang mở Liên Minh Huyền Thoại...",
+        toastLaunchingVal: "Đang mở VALORANT...",
+        toastLaunchingClient: "Đang mở Riot Client...",
+        toastKilled: "Đã dừng các tiến trình Riot Games!",
+        toastDeleteSuccess: "Đã xóa tài khoản thành công!",
+        toastEditSuccess: "Đã cập nhật thông tin tài khoản!",
+        toastTcNoSynced: (n) => `Đã đồng bộ ${n} tài khoản từ TcNo!`
+      },
+      en: {
+        appSub: "LoL & Valorant Fast Swap",
+        riotRunning: "Riot Client Running",
+        riotClosed: "Riot Client Closed",
+        matchWarningPill: "IN-MATCH ACTIVE",
+        noAccount: "Not Detected",
+        noAccountSub: "⚪ Select an account below to activate",
+        readyPlay: "🟢 Ready to Play",
+        readyPlayClientClosed: "⚪ Ready (Riot Client will auto-start)",
+        inMatchActive: "⚠️ Active match in progress!",
+        activeLabel: "Currently Active Account",
+        launchLol: "⚔️ LAUNCH LEAGUE OF LEGENDS",
+        launchVal: "🎯 LAUNCH VALORANT",
+        launchClient: "⚡ Open Riot Client",
+        savedAccounts: "Saved Accounts",
+        accCount: (n) => `${n} ${n === 1 ? 'account' : 'accounts'}`,
+        btnCapture: "⚡ Capture Current Session",
+        btnNewSession: "+ Add New Account",
+        btnSyncTcNo: "🔄 Import from TcNo",
+        btnKillRiot: "🛑 Close Riot",
+        btnSwitch: "⚡ Switch to this account",
+        badgeActive: "✓ ACTIVE NOW",
+        defaultNote: "Riot Account",
+        modalCaptureTitle: "Capture Current Account",
+        modalCaptureDesc: "Switcher will read the active Riot session on this PC ('Stay signed in' must be checked) and create a snapshot for fast switching anytime.",
+        labelDisplayName: "Display Name / Riot ID",
+        phCaptureName: "Auto-detected from Riot Client...",
+        labelNote: "Account Note",
+        phCaptureNote: "Enter a note for this account...",
+        labelAvatar: "Select Profile Avatar",
+        btnCancel: "Cancel",
+        btnConfirmSave: "Save Account",
+        modalNewTitle: "Add New Account",
+        step1: "Click 'Launch Login Window' below to clear the active session and launch Riot Client.",
+        step2: "Log into your account and CHECK 'Stay signed in'.",
+        step3: "Return here and click 'Signed In - Save Now' to finish.",
+        waitingLogin: "Waiting for you to sign in on Riot Client...",
+        btnClose: "Close",
+        btnStartLogin: "1. Launch Login Window",
+        btnSaveNew: "2. Signed In - Save Now",
+        modalMatchTitle: "⚠️ Active Match Warning",
+        modalMatchBody1: "System detected an ACTIVE MATCH in progress (LoL or VALORANT).",
+        modalMatchBody2: "Switching accounts now will terminate the game immediately and may cause AFK penalties or rank loss.",
+        modalMatchBody3: "Are you sure you want to force close the game and switch?",
+        btnBackMatch: "Return to Game",
+        btnForceSwitch: "Force Close & Switch",
+        modalDeleteTitle: "🗑️ Confirm Delete Account",
+        modalDeleteBody1: "Are you sure you want to delete account",
+        modalDeleteBody2: "from this app?",
+        modalDeleteSub: "All saved session data and backups for this account will be permanently deleted from your computer.",
+        btnConfirmDelete: "Confirm Delete",
+        modalEditTitle: "Edit Account",
+        labelTagline: "Tagline (after #)",
+        btnSaveChanges: "Save Changes",
+        ctxEdit: "Edit Name & Avatar",
+        ctxSwitch: "Switch to this account",
+        ctxCopy: "Copy Riot ID",
+        ctxDelete: "Delete Account",
+        toastSwitching: "Switching account...",
+        toastSwitched: "Switched account successfully!",
+        toastCopied: "Copied Riot ID to clipboard!",
+        toastLaunchingLol: "Launching League of Legends...",
+        toastLaunchingVal: "Launching VALORANT...",
+        toastLaunchingClient: "Launching Riot Client...",
+        toastKilled: "Stopped all Riot Games processes!",
+        toastDeleteSuccess: "Account deleted successfully!",
+        toastEditSuccess: "Account details updated!",
+        toastTcNoSynced: (n) => `Synced ${n} accounts from TcNo!`
+      }
+    };
+
+    function t(key, ...args) {
+      const dict = TRANSLATIONS[currentLang] || TRANSLATIONS.vi;
+      const val = dict[key] !== undefined ? dict[key] : (TRANSLATIONS.vi[key] || key);
+      if (typeof val === 'function') return val(...args);
+      return val;
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'vi' ? 'en' : 'vi';
+      localStorage.setItem('app_lang', currentLang);
+      applyLanguage();
+      renderAccounts();
+      if (currentLiveStatus) updateStatusUI(currentLiveStatus);
+      playSfx('click');
+    }
+
+    function applyLanguage() {
+      const isEn = currentLang === 'en';
+      const langBtn = document.getElementById('lang-toggle-btn');
+      if (langBtn) {
+        langBtn.innerText = isEn ? '🇻🇳 Tiếng Việt' : '🌐 English';
+        langBtn.title = isEn ? 'Chuyển sang Tiếng Việt' : 'Switch to English';
+      }
+
+      // Subtitle
+      const sub = document.getElementById('app-sub-text');
+      if (sub) sub.innerText = t('appSub');
+
+      // Buttons
+      const btnKill = document.getElementById('btn-kill-riot');
+      if (btnKill) btnKill.innerText = t('btnKillRiot');
+
+      // Hero
+      const heroLabel = document.getElementById('hero-active-label');
+      if (heroLabel) heroLabel.innerText = t('activeLabel');
+      const btnLol = document.getElementById('hero-btn-lol');
+      if (btnLol) btnLol.innerText = t('launchLol');
+      const btnVal = document.getElementById('hero-btn-val');
+      if (btnVal) btnVal.innerText = t('launchVal');
+      const btnClient = document.getElementById('hero-btn-client');
+      if (btnClient) btnClient.innerText = t('launchClient');
+
+      // Action Bar
+      const actTitle = document.getElementById('action-bar-title');
+      if (actTitle) actTitle.innerText = t('savedAccounts');
+      const btnCap = document.getElementById('btn-capture-modal');
+      if (btnCap) btnCap.innerText = t('btnCapture');
+      const btnNew = document.getElementById('btn-new-modal');
+      if (btnNew) btnNew.innerText = t('btnNewSession');
+      const btnSync = document.getElementById('btn-sync-tcno');
+      if (btnSync) btnSync.innerText = t('btnSyncTcNo');
+
+      // Modals
+      const modCapTitle = document.getElementById('modal-capture-title');
+      if (modCapTitle) modCapTitle.innerText = t('modalCaptureTitle');
+      const modCapDesc = document.getElementById('modal-capture-desc');
+      if (modCapDesc) modCapDesc.innerText = t('modalCaptureDesc');
+      const lblCapName = document.getElementById('label-capture-name');
+      if (lblCapName) lblCapName.innerText = t('labelDisplayName');
+      const inpCapName = document.getElementById('capture-name');
+      if (inpCapName) inpCapName.placeholder = t('phCaptureName');
+      const lblCapNote = document.getElementById('label-capture-note');
+      if (lblCapNote) lblCapNote.innerText = t('labelNote');
+      const inpCapNote = document.getElementById('capture-note');
+      if (inpCapNote) inpCapNote.placeholder = t('phCaptureNote');
+      const lblCapAv = document.getElementById('label-capture-avatar');
+      if (lblCapAv) lblCapAv.innerText = t('labelAvatar');
+      const btnCanCap = document.getElementById('btn-cancel-capture');
+      if (btnCanCap) btnCanCap.innerText = t('btnCancel');
+      const btnSubCap = document.getElementById('btn-submit-capture');
+      if (btnSubCap) btnSubCap.innerText = t('btnConfirmSave');
+
+      // Modal New
+      const modNewTitle = document.getElementById('modal-new-title');
+      if (modNewTitle) modNewTitle.innerText = t('modalNewTitle');
+      const s1 = document.getElementById('new-step1-text');
+      if (s1) s1.innerHTML = `<strong>${isEn ? 'Step 1:' : 'Bước 1:'}</strong> ${t('step1')}`;
+      const s2 = document.getElementById('new-step2-text');
+      if (s2) s2.innerHTML = `<strong>${isEn ? 'Step 2:' : 'Bước 2:'}</strong> ${t('step2')}`;
+      const s3 = document.getElementById('new-step3-text');
+      if (s3) s3.innerHTML = `<strong>${isEn ? 'Step 3:' : 'Bước 3:'}</strong> ${t('step3')}`;
+      const waitTxt = document.getElementById('new-waiting-text');
+      if (waitTxt) waitTxt.innerText = t('waitingLogin');
+      const btnCloseNew = document.getElementById('btn-close-new');
+      if (btnCloseNew) btnCloseNew.innerText = t('btnClose');
+      const btnStartLogin = document.getElementById('btn-start-login');
+      if (btnStartLogin) btnStartLogin.innerText = t('btnStartLogin');
+      const btnSaveNew = document.getElementById('btn-save-new');
+      if (btnSaveNew) btnSaveNew.innerText = t('btnSaveNew');
+
+      // Modal Match
+      const modMatchTitle = document.getElementById('modal-match-title');
+      if (modMatchTitle) modMatchTitle.innerText = t('modalMatchTitle');
+      const mp1 = document.getElementById('modal-match-p1');
+      if (mp1) mp1.innerText = t('modalMatchBody1');
+      const mp2 = document.getElementById('modal-match-p2');
+      if (mp2) mp2.innerText = t('modalMatchBody2');
+      const mp3 = document.getElementById('modal-match-p3');
+      if (mp3) mp3.innerText = t('modalMatchBody3');
+      const btnBackMatch = document.getElementById('btn-back-match');
+      if (btnBackMatch) btnBackMatch.innerText = t('btnBackMatch');
+      const btnForceSwitch = document.getElementById('btn-force-switch');
+      if (btnForceSwitch) btnForceSwitch.innerText = t('btnForceSwitch');
+
+      // Modal Delete
+      const modDelTitle = document.getElementById('modal-delete-title');
+      if (modDelTitle) modDelTitle.innerText = t('modalDeleteTitle');
+      const delP1 = document.getElementById('modal-delete-p1');
+      if (delP1) delP1.innerText = t('modalDeleteBody1');
+      const delP2 = document.getElementById('modal-delete-p2');
+      if (delP2) delP2.innerText = t('modalDeleteBody2');
+      const delSub = document.getElementById('modal-delete-sub');
+      if (delSub) delSub.innerText = t('modalDeleteSub');
+      const btnCanDel = document.getElementById('btn-cancel-delete');
+      if (btnCanDel) btnCanDel.innerText = t('btnCancel');
+      const btnConfDel = document.getElementById('btn-confirm-delete');
+      if (btnConfDel) btnConfDel.innerText = t('btnConfirmDelete');
+
+      // Modal Edit
+      const modEditTitle = document.getElementById('modal-edit-title');
+      if (modEditTitle) modEditTitle.innerText = t('modalEditTitle');
+      const lblEditName = document.getElementById('label-edit-name');
+      if (lblEditName) lblEditName.innerText = t('labelDisplayName');
+      const lblEditTag = document.getElementById('label-edit-tag');
+      if (lblEditTag) lblEditTag.innerText = t('labelTagline');
+      const lblEditNote = document.getElementById('label-edit-note');
+      if (lblEditNote) lblEditNote.innerText = t('labelNote');
+      const lblEditAv = document.getElementById('label-edit-avatar');
+      if (lblEditAv) lblEditAv.innerText = t('labelAvatar');
+      const btnCanEdit = document.getElementById('btn-cancel-edit');
+      if (btnCanEdit) btnCanEdit.innerText = t('btnCancel');
+      const btnSubEdit = document.getElementById('btn-submit-edit');
+      if (btnSubEdit) btnSubEdit.innerText = t('btnSaveChanges');
+
+      // Context menu
+      const ctxEdit = document.getElementById('ctx-item-edit');
+      if (ctxEdit) ctxEdit.innerHTML = `<span>✏️</span> <span>${t('ctxEdit')}</span>`;
+      const ctxSwitch = document.getElementById('ctx-item-switch');
+      if (ctxSwitch) ctxSwitch.innerText = t('ctxSwitch');
+      const ctxCopy = document.getElementById('ctx-item-copy');
+      if (ctxCopy) ctxCopy.innerHTML = `<span>📋</span> <span>${t('ctxCopy')}</span>`;
+      const ctxDelete = document.getElementById('ctx-item-delete');
+      if (ctxDelete) ctxDelete.innerHTML = `<span>🗑️</span> <span>${t('ctxDelete')}</span>`;
+
+      // Counter
+      const counter = document.getElementById('acc-counter');
+      if (counter) counter.innerText = t('accCount', currentAccounts.length);
+    }
 
     // Web Audio Synthesizer SFX
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1279,6 +1574,7 @@
 
     // INITIALIZATION
     window.addEventListener('DOMContentLoaded', () => {
+      applyLanguage();
       setupAvatarPickers();
       setupEditAvatarPicker();
       fetchStatus();
@@ -1369,10 +1665,10 @@
 
       if (data.riot_running) {
         dot.className = 'status-dot active';
-        label.innerText = 'Riot Client đang chạy';
+        label.innerText = t('riotRunning');
       } else {
         dot.className = 'status-dot';
-        label.innerText = 'Riot Client đã tắt';
+        label.innerText = t('riotClosed');
       }
 
       matchItem.style.display = data.match_running ? 'flex' : 'none';
@@ -1391,7 +1687,7 @@
         if (heroTag) heroTag.innerText = acc.tag ? `#${acc.tag}` : '';
         if (heroRegion) heroRegion.innerText = acc.region || 'VN2';
         if (heroStatus) {
-          heroStatus.innerText = data.match_running ? '⚠️ Đang trong trận đấu!' : (data.riot_running ? '🟢 Sẵn sàng chiến game' : '⚪ Sẵn sàng (Riot Client sẽ tự mở)');
+          heroStatus.innerText = data.match_running ? t('inMatchActive') : (data.riot_running ? t('readyPlay') : t('readyPlayClientClosed'));
         }
         const matched = currentAccounts.find(a => a.name.toLowerCase() === acc.name.toLowerCase());
         if (matched && heroAvatar) {
@@ -1399,11 +1695,11 @@
           if (av) heroAvatar.src = av.url;
         }
       } else {
-        liveAccBox.innerText = 'Chưa đăng nhập';
-        if (heroName) heroName.innerText = 'Chưa có tài khoản';
+        liveAccBox.innerText = t('noAccount');
+        if (heroName) heroName.innerText = t('noAccount');
         if (heroTag) heroTag.innerText = '';
         if (heroRegion) heroRegion.innerText = 'VN2';
-        if (heroStatus) heroStatus.innerText = '⚪ Hãy chọn một tài khoản bên dưới để kích hoạt';
+        if (heroStatus) heroStatus.innerText = t('noAccountSub');
       }
 
       highlightActiveCard();
@@ -1417,23 +1713,24 @@
         renderAccounts();
         if (currentLiveStatus) updateStatusUI(currentLiveStatus);
       } catch (err) {
-        showToast("Lỗi tải danh sách tài khoản", "error");
+        showToast(currentLang === 'en' ? "Failed to load account list" : "Lỗi tải danh sách tài khoản", "error");
       }
     }
 
     function renderAccounts() {
       const container = document.getElementById('accounts-container');
       const counter = document.getElementById('acc-counter');
-      counter.innerText = `${currentAccounts.length} tài khoản`;
+      if (counter) counter.innerText = t('accCount', currentAccounts.length);
 
       if (currentAccounts.length === 0) {
+        const isEn = currentLang === 'en';
         container.innerHTML = `
           <div class="empty-state">
-            <h3>Chưa có tài khoản nào được lưu</h3>
-            <p>Hãy bấm 'Lưu phiên hiện tại' nếu bạn đang mở Riot Client, hoặc bấm 'Nhập từ TcNo' để tự động nạp các tài khoản đã có sẵn từ trước.</p>
+            <h3>${isEn ? 'No accounts saved yet' : 'Chưa có tài khoản nào được lưu'}</h3>
+            <p>${isEn ? "Click 'Capture Current Session' if Riot Client is open, or 'Import from TcNo' to import pre-existing accounts." : "Hãy bấm 'Lưu phiên hiện tại' nếu bạn đang mở Riot Client, hoặc bấm 'Nhập từ TcNo' để tự động nạp các tài khoản đã có sẵn từ trước."}</p>
             <div style="display:flex; gap:10px;">
-              <button class="btn btn-primary" onclick="openCaptureModal()">⚡ Lưu phiên hiện tại</button>
-              <button class="btn btn-secondary" onclick="syncFromTcNo()">🔄 Nhập từ TcNo</button>
+              <button class="btn btn-primary" onclick="openCaptureModal()">${t('btnCapture')}</button>
+              <button class="btn btn-secondary" onclick="syncFromTcNo()">${t('btnSyncTcNo')}</button>
             </div>
           </div>
         `;
@@ -1454,7 +1751,7 @@
 
         card.innerHTML = `
           <div class="card-top">
-            <div class="avatar-wrapper" onclick="openEditModal('${acc.id}')" title="Chuột phải hoặc bấm để đổi Avatar & Tên" style="cursor: pointer;">
+            <div class="avatar-wrapper" onclick="openEditModal('${acc.id}')" title="${currentLang === 'en' ? 'Right click or click to edit avatar & name' : 'Chuột phải hoặc bấm để đổi Avatar & Tên'}" style="cursor: pointer;">
               <img class="avatar-img" src="${av.url}" alt="${av.name}" onerror="this.src='/assets/avatars/jinx.png'">
             </div>
             <div class="card-info">
@@ -1466,14 +1763,14 @@
                 <span class="badge-pill badge-region">${acc.region || 'VN2'}</span>
                 <span class="badge-pill">${timeAgo(acc.last_used)}</span>
               </div>
-              <div class="card-note" title="${acc.note || ''}">${acc.note || 'Tài khoản Riot'}</div>
+              <div class="card-note" title="${acc.note || ''}">${acc.note || t('defaultNote')}</div>
             </div>
           </div>
 
           <div class="card-switch-action">
             ${isActive 
-              ? `<div class="card-active-indicator">✓ ĐANG KÍCH HOẠT</div>`
-              : `<button class="btn-switch-acc" onclick="handleSwitch('${acc.id}')">⚡ Chuyển sang tài khoản này</button>`
+              ? `<div class="card-active-indicator">${t('badgeActive')}</div>`
+              : `<button class="btn-switch-acc" onclick="handleSwitch('${acc.id}')">${t('btnSwitch')}</button>`
             }
           </div>
         `;
@@ -1571,13 +1868,14 @@
       const name = document.getElementById('edit-acc-name').value.trim();
       const tag = document.getElementById('edit-acc-tag').value.trim();
       const note = document.getElementById('edit-acc-note').value.trim();
+      const isEn = currentLang === 'en';
 
       if (!name) {
-        showToast("Vui lòng nhập tên tài khoản", "error");
+        showToast(isEn ? "Please enter account name" : "Vui lòng nhập tên tài khoản", "error");
         return;
       }
 
-      showToast("Đang lưu thông tin...", "info");
+      showToast(isEn ? "Saving details..." : "Đang lưu thông tin...", "info");
       try {
         const res = await fetch(`${API_BASE}/api/accounts/update`, {
           method: "POST",
@@ -1593,15 +1891,15 @@
         const data = await res.json();
         if (data.success) {
           playSfx('success');
-          showToast("Đã cập nhật tên và avatar thành công!", "success");
+          showToast(isEn ? "Account name & avatar updated!" : "Đã cập nhật tên và avatar thành công!", "success");
           closeModal('modal-edit-account');
           await fetchAccounts();
           await fetchStatus();
         } else {
-          showToast(data.error || "Không thể cập nhật tài khoản", "error");
+          showToast(data.error || (isEn ? "Failed to update account" : "Không thể cập nhật tài khoản"), "error");
         }
       } catch (err) {
-        showToast("Lỗi kết nối khi cập nhật tài khoản", "error");
+        showToast(isEn ? "Connection error while updating account" : "Lỗi kết nối khi cập nhật tài khoản", "error");
       }
     }
 
@@ -1617,8 +1915,9 @@
     }
 
     async function executeLaunch(product) {
-      const prodName = product === 'lol' ? 'Liên Minh Huyền Thoại' : (product === 'valorant' ? 'VALORANT' : 'Riot Client');
-      showToast(`Đang mở ${prodName}...`, "info");
+      const isEn = currentLang === 'en';
+      const prodName = product === 'lol' ? (isEn ? 'League of Legends' : 'Liên Minh Huyền Thoại') : (product === 'valorant' ? 'VALORANT' : 'Riot Client');
+      showToast(isEn ? `Launching ${prodName}...` : `Đang mở ${prodName}...`, "info");
       try {
         const res = await fetch(`${API_BASE}/api/launch`, {
           method: "POST",
@@ -1628,13 +1927,13 @@
         const data = await res.json();
         if (data.success) {
           playSfx('success');
-          showToast(`Đã mở ${prodName} thành công!`, "success");
+          showToast(isEn ? `Launched ${prodName} successfully!` : `Đã mở ${prodName} thành công!`, "success");
           fetchStatus();
         } else {
-          showToast(data.error || `Không thể mở ${prodName}`, "error");
+          showToast(data.error || (isEn ? `Could not launch ${prodName}` : `Không thể mở ${prodName}`), "error");
         }
       } catch (err) {
-        showToast("Lỗi kết nối khi mở game", "error");
+        showToast(isEn ? "Connection error while launching game" : "Lỗi kết nối khi mở game", "error");
       }
     }
 
@@ -1662,7 +1961,8 @@
     }
 
     async function executeSwitch(accId) {
-      showToast("Đang kiểm tra và chuyển tài khoản...", "info");
+      const isEn = currentLang === 'en';
+      showToast(isEn ? "Verifying and switching account..." : "Đang kiểm tra và chuyển tài khoản...", "info");
       try {
         const res = await fetch(`${API_BASE}/api/accounts/switch`, {
           method: "POST",
@@ -1673,48 +1973,50 @@
         if (data.success) {
           playSfx('success');
           if (data.already_active) {
-            showToast("Tài khoản này đang được kích hoạt sẵn trên máy!", "info");
+            showToast(isEn ? "This account is already active on this PC!" : "Tài khoản này đang được kích hoạt sẵn trên máy!", "info");
           } else {
-            showToast("Đã chuyển sang tài khoản thành công!", "success");
+            showToast(isEn ? "Switched account successfully!" : "Đã chuyển sang tài khoản thành công!", "success");
           }
           await fetchStatus();
           await fetchAccounts();
         } else {
-          showToast(data.error || "Đổi tài khoản thất bại", "error");
+          showToast(data.error || (isEn ? "Account switch failed" : "Đổi tài khoản thất bại"), "error");
         }
       } catch (err) {
-        showToast("Lỗi kết nối khi đổi tài khoản", "error");
+        showToast(isEn ? "Connection error while switching account" : "Lỗi kết nối khi đổi tài khoản", "error");
       }
     }
 
     async function killRiotProcess() {
+      const isEn = currentLang === 'en';
       playSfx('click');
       try {
         const res = await fetch(`${API_BASE}/api/kill-riot`, { method: "POST" });
         const data = await res.json();
         if (data.success) {
-          showToast("Đã đóng toàn bộ tiến trình Riot", "success");
+          showToast(isEn ? "Stopped all Riot Games processes!" : "Đã đóng toàn bộ tiến trình Riot", "success");
           fetchStatus();
         }
       } catch (e) {
-        showToast("Lỗi khi đóng Riot", "error");
+        showToast(isEn ? "Error stopping Riot processes" : "Lỗi khi đóng Riot", "error");
       }
     }
 
     async function syncFromTcNo() {
+      const isEn = currentLang === 'en';
       playSfx('click');
-      showToast("Đang quét tài khoản từ TcNo...", "info");
+      showToast(isEn ? "Scanning accounts from TcNo..." : "Đang quét tài khoản từ TcNo...", "info");
       try {
         const res = await fetch(`${API_BASE}/api/import-tcno`, { method: "POST" });
         const data = await res.json();
         if (data.success) {
-          showToast(`Đã nạp thành công ${data.imported} tài khoản từ TcNo!`, "success");
+          showToast(isEn ? `Imported ${data.imported} accounts from TcNo!` : `Đã nạp thành công ${data.imported} tài khoản từ TcNo!`, "success");
           fetchAccounts();
         } else {
-          showToast(data.message || "Không tìm thấy dữ liệu TcNo", "info");
+          showToast(data.message || (isEn ? "No TcNo data found" : "Không tìm thấy dữ liệu TcNo"), "info");
         }
       } catch (e) {
-        showToast("Lỗi khi đồng bộ TcNo", "error");
+        showToast(isEn ? "Error syncing from TcNo" : "Lỗi khi đồng bộ TcNo", "error");
       }
     }
 
@@ -1732,11 +2034,12 @@
     }
 
     async function executeDeleteAccount() {
+      const isEn = currentLang === 'en';
       if (!pendingDeleteAccId) return;
       const accId = pendingDeleteAccId;
       closeModal('modal-confirm-delete');
       playSfx('click');
-      showToast("Đang xóa tài khoản...", "info");
+      showToast(isEn ? "Deleting account..." : "Đang xóa tài khoản...", "info");
       try {
         const res = await fetch(`${API_BASE}/api/accounts/delete`, {
           method: "POST",
@@ -1746,23 +2049,24 @@
         const data = await res.json();
         if (data.success) {
           playSfx('success');
-          showToast("Đã xóa tài khoản khỏi ứng dụng!", "success");
+          showToast(isEn ? "Account deleted from app!" : "Đã xóa tài khoản khỏi ứng dụng!", "success");
           pendingDeleteAccId = null;
           await fetchAccounts();
           await fetchStatus();
         } else {
-          showToast(data.error || "Không thể xóa tài khoản", "error");
+          showToast(data.error || (isEn ? "Failed to delete account" : "Không thể xóa tài khoản"), "error");
         }
       } catch (e) {
-        showToast("Lỗi kết nối khi xóa tài khoản", "error");
+        showToast(isEn ? "Connection error while deleting account" : "Lỗi kết nối khi xóa tài khoản", "error");
       }
     }
 
     function copyRiotId(name, tag) {
+      const isEn = currentLang === 'en';
       playSfx('click');
       const text = tag ? `${name}#${tag}` : name;
       navigator.clipboard.writeText(text);
-      showToast(`Đã copy: ${text}`, "success");
+      showToast(isEn ? `Copied: ${text}` : `Đã copy: ${text}`, "success");
     }
 
     // CAPTURE CURRENT MODAL
@@ -1777,6 +2081,7 @@
     }
 
     async function submitCapture() {
+      const isEn = currentLang === 'en';
       const nameInput = document.getElementById('capture-name').value.trim();
       const note = document.getElementById('capture-note').value.trim();
       let customName = null;
@@ -1789,7 +2094,7 @@
         customName = nameInput;
       }
 
-      showToast("Đang lưu snapshot tài khoản...", "info");
+      showToast(isEn ? "Saving account snapshot..." : "Đang lưu snapshot tài khoản...", "info");
       try {
         const res = await fetch(`${API_BASE}/api/accounts/capture`, {
           method: "POST",
@@ -1805,14 +2110,14 @@
         const data = await res.json();
         if (data.success) {
           playSfx('success');
-          showToast(`Đã lưu tài khoản ${data.account.name} thành công!`, "success");
+          showToast(isEn ? `Saved account ${data.account.name} successfully!` : `Đã lưu tài khoản ${data.account.name} thành công!`, "success");
           closeModal('modal-capture');
           fetchAccounts();
         } else {
-          showToast(data.error || "Không thể lưu phiên đăng nhập", "error");
+          showToast(data.error || (isEn ? "Could not save active session" : "Không thể lưu phiên đăng nhập"), "error");
         }
       } catch (e) {
-        showToast("Lỗi kết nối khi lưu", "error");
+        showToast(isEn ? "Connection error while saving" : "Lỗi kết nối khi lưu", "error");
       }
     }
 
@@ -1826,8 +2131,9 @@
     }
 
     async function startNewSessionFlow() {
+      const isEn = currentLang === 'en';
       playSfx('click');
-      showToast("Đang mở Riot Client để đăng nhập mới...", "info");
+      showToast(isEn ? "Launching Riot Client for new sign-in..." : "Đang mở Riot Client để đăng nhập mới...", "info");
       try {
         const res = await fetch(`${API_BASE}/api/accounts/new-session`, { method: "POST" });
         const data = await res.json();
@@ -1836,10 +2142,10 @@
           document.getElementById('btn-start-login').style.display = 'none';
           document.getElementById('btn-save-new').style.display = 'inline-flex';
         } else {
-          showToast(data.error || "Không thể mở Riot Client", "error");
+          showToast(data.error || (isEn ? "Could not launch Riot Client" : "Không thể mở Riot Client"), "error");
         }
       } catch (e) {
-        showToast("Lỗi kết nối", "error");
+        showToast(isEn ? "Connection error" : "Lỗi kết nối", "error");
       }
     }
 
@@ -1874,12 +2180,19 @@
 
     // TIME AGO HELPER
     function timeAgo(timestamp) {
-      if (!timestamp) return "Mới tạo";
+      if (!timestamp) return currentLang === 'en' ? "Just created" : "Mới tạo";
       const diff = Math.floor((Date.now() / 1000) - timestamp);
-      if (diff < 60) return "Vừa xong";
-      if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
-      if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
-      return `${Math.floor(diff / 86400)} ngày trước`;
+      if (diff < 60) return currentLang === 'en' ? "Just now" : "Vừa xong";
+      if (diff < 3600) {
+        const m = Math.floor(diff / 60);
+        return currentLang === 'en' ? `${m}m ago` : `${m} phút trước`;
+      }
+      if (diff < 86400) {
+        const h = Math.floor(diff / 3600);
+        return currentLang === 'en' ? `${h}h ago` : `${h} giờ trước`;
+      }
+      const d = Math.floor(diff / 86400);
+      return currentLang === 'en' ? `${d}d ago` : `${d} ngày trước`;
     }
   </script>
 </body>

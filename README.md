@@ -28,7 +28,7 @@
 
 - ⚡ **One-Click Instant Account Swapping:** Effortlessly switch between Riot Games accounts in seconds without re-entering credentials or 2FA codes.
 - 🎯 **Reliable Game Launching via Local Lockfile REST API:** Directly trigger game launches via Riot Client's internal HTTPS REST API (`POST /product-launcher/v1/products/.../patchlines/live`), bypassing background process locks.
-- 🎨 **Hextech Arcana UI Design:** Polished navy & gold theme, soft rounded borders, smooth audio feedback, and clean Vietnamese/Unicode font rendering (`Be Vietnam Pro`).
+- 🌐 **Bilingual Support (English & Tiếng Việt):** Instant on-the-fly language toggle between English and Vietnamese across all app screens and dialogs.
 - 🖱️ **Right-Click Context Menu & Inline Editing:**
   - Edit display Riot ID & tagline (`#tag`).
   - Add account notes.
@@ -36,16 +36,15 @@
   - Quick-copy Riot ID to clipboard.
   - Safe account removal with styled in-app confirmation dialog.
 - 🛡️ **100% Privacy & Local Storage:** Session tokens and snapshot data remain strictly on your local PC. No telemetry, no remote servers, no data collection.
-- 📦 **Native Standalone Executable:** Single-file portable `.exe` (~36MB) with custom taskbar, desktop shortcut, and title bar icons. Zero setup required (no Python or Node.js needed).
 
 ---
 
 ## 📥 Download Latest Release
 
-👉 Grab the pre-built single-file executable from **[Releases](https://github.com/vietanh210304/riot-account-switcher/releases/latest)**:
+👉 Grab the pre-built packages from **[Releases](https://github.com/vietanh210304/riot-account-switcher/releases/latest)**:
 
-1. Download **`RiotAccountSwitcher.exe`**.
-2. Place it anywhere on your Windows PC and double-click to run!
+- 📦 **Installer (`RiotAccountSwitcher-Setup.exe`):** Standard Windows installer that sets up Start Menu shortcuts, Desktop icon, and an uninstaller in Windows Settings.
+- 🚀 **Portable (`RiotAccountSwitcher-Portable.exe`):** Single-file standalone executable with zero installation required. Run directly from anywhere!
 
 ---
 

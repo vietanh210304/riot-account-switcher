@@ -28,7 +28,7 @@
 
 - ⚡ **Hoán đổi tài khoản 1 chạm:** Chuyển đổi giữa các tài khoản Riot Games nhanh chóng chỉ trong vài giây mà không cần nhập lại mật khẩu hay mã xác thực OTP.
 - 🎯 **Khởi chạy game trực tiếp qua Lockfile REST API:** Gọi trực tiếp REST API nội bộ của Riot Client (`POST /product-launcher/v1/products/.../patchlines/live`), mở thẳng LMHT hoặc VALORANT mà không sợ kẹt tiến trình chạy nền.
-- 🎨 **Giao diện Hextech Arcana tinh tế:** Tông màu Navy & Vàng kim sang trọng, bo viền mềm mại, font chữ tiếng Việt `Be Vietnam Pro` chuẩn nét, không lỗi font hay đè chữ.
+- 🌐 **Hỗ trợ song ngữ (Tiếng Việt & English):** Chuyển đổi ngôn ngữ tức thì chỉ với một cú nhấp chuột trên thanh tiêu đề ứng dụng.
 - 🖱️ **Menu chuột phải tiện lợi (Right-click Context Menu):**
   - Chỉnh sửa tên hiển thị Riot ID & tagline (`#tag`).
   - Thêm ghi chú riêng cho từng tài khoản.
@@ -36,16 +36,15 @@
   - Sao chép nhanh Riot ID vào clipboard.
   - Xóa tài khoản với hộp thoại xác nhận In-App an toàn.
 - 🛡️ **Bảo mật tối đa & Lưu trữ cục bộ:** Toàn bộ dữ liệu phiên đăng nhập lưu trữ 100% trên máy tính cá nhân của bạn. Không gửi bất kỳ dữ liệu nào ra bên ngoài.
-- 📦 **Đóng gói Native Windows:** File `.exe` duy nhất (Single-file Portable ~36MB), tích hợp sẵn icon cho Desktop, Taskbar và Titlebar, không yêu cầu cài đặt Python hay Node.js.
 
 ---
 
 ## 📥 Tải về bản phát hành mới nhất
 
-👉 Tải file thực thi trực tiếp tại trang **[Releases](https://github.com/vietanh210304/riot-account-switcher/releases/latest)**:
+👉 Tải các gói cài đặt trực tiếp tại trang **[Releases](https://github.com/vietanh210304/riot-account-switcher/releases/latest)**:
 
-1. Tải tệp **`RiotAccountSwitcher.exe`**.
-2. Đặt vào bất kỳ thư mục nào trên máy tính và nhấp đúp để sử dụng ngay!
+- 📦 **Bản cài đặt (`RiotAccountSwitcher-Setup.exe`):** Trình cài đặt chuẩn Windows, tự động tạo lối tắt trên Desktop, Start Menu và hỗ trợ gỡ cài đặt tiện lợi trong Settings/Control Panel.
+- 🚀 **Bản Portable (`RiotAccountSwitcher-Portable.exe`):** File thực thi đơn lẻ không cần cài đặt, nhấp đúp là sử dụng ngay ở bất kỳ thư mục nào!
 
 ---
 
