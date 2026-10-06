@@ -1180,18 +1180,25 @@
 
   <!-- CUSTOM CONTEXT MENU (CHUỘT PHẢI) -->
   <div class="context-menu" id="custom-context-menu">
-    <div class="context-menu-item" id="ctx-item-edit" onclick="onContextEdit()">
-      <span>✏️</span> <span>Đổi tên & Avatar</span>
+    <div class="context-menu-item" id="context-switch-lol-btn" onclick="onContextSwitchGame('lol')">
+      <span>⚔️</span> <span id="ctx-item-switch-lol">Chuyển & Vào LMHT</span>
+    </div>
+    <div class="context-menu-item" id="context-switch-val-btn" onclick="onContextSwitchGame('valorant')">
+      <span>🎯</span> <span id="ctx-item-switch-val">Chuyển & Vào VALORANT</span>
     </div>
     <div class="context-menu-item" id="context-switch-btn" onclick="onContextSwitch()">
-      <span>⚡</span> <span id="ctx-item-switch">Chuyển sang tài khoản này</span>
+      <span>⚡</span> <span id="ctx-item-switch">Chỉ chuyển tài khoản</span>
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" id="ctx-item-edit" onclick="onContextEdit()">
+      <span>✏️</span> <span id="ctx-item-edit-text">Đổi tên & Avatar</span>
     </div>
     <div class="context-menu-item" id="ctx-item-copy" onclick="onContextCopy()">
-      <span>📋</span> <span>Sao chép Riot ID</span>
+      <span>📋</span> <span id="ctx-item-copy-text">Sao chép Riot ID</span>
     </div>
     <div class="context-menu-divider"></div>
     <div class="context-menu-item danger" id="ctx-item-delete" onclick="onContextDelete()">
-      <span>🗑️</span> <span>Xóa tài khoản</span>
+      <span>🗑️</span> <span id="ctx-item-delete-text">Xóa tài khoản</span>
     </div>
   </div>
 
@@ -1299,7 +1306,9 @@
         labelTagline: "Tagline (sau dấu #)",
         btnSaveChanges: "Lưu thay đổi",
         ctxEdit: "Đổi tên & Avatar",
-        ctxSwitch: "Chuyển sang tài khoản này",
+        ctxSwitchLol: "Chuyển & Vào LMHT",
+        ctxSwitchVal: "Chuyển & Vào VALORANT",
+        ctxSwitch: "Chỉ chuyển tài khoản",
         ctxCopy: "Sao chép Riot ID",
         ctxDelete: "Xóa tài khoản",
         toastSwitching: "Đang chuyển đổi tài khoản...",
@@ -1368,7 +1377,9 @@
         labelTagline: "Tagline (after #)",
         btnSaveChanges: "Save Changes",
         ctxEdit: "Edit Name & Avatar",
-        ctxSwitch: "Switch to this account",
+        ctxSwitchLol: "Switch & Launch LoL",
+        ctxSwitchVal: "Switch & Launch VALORANT",
+        ctxSwitch: "Switch Account Only",
         ctxCopy: "Copy Riot ID",
         ctxDelete: "Delete Account",
         toastSwitching: "Switching account...",
@@ -1519,14 +1530,18 @@
       if (btnSubEdit) btnSubEdit.innerText = t('btnSaveChanges');
 
       // Context menu
-      const ctxEdit = document.getElementById('ctx-item-edit');
-      if (ctxEdit) ctxEdit.innerHTML = `<span>✏️</span> <span>${t('ctxEdit')}</span>`;
+      const ctxLol = document.getElementById('ctx-item-switch-lol');
+      if (ctxLol) ctxLol.innerText = t('ctxSwitchLol');
+      const ctxVal = document.getElementById('ctx-item-switch-val');
+      if (ctxVal) ctxVal.innerText = t('ctxSwitchVal');
       const ctxSwitch = document.getElementById('ctx-item-switch');
       if (ctxSwitch) ctxSwitch.innerText = t('ctxSwitch');
-      const ctxCopy = document.getElementById('ctx-item-copy');
-      if (ctxCopy) ctxCopy.innerHTML = `<span>📋</span> <span>${t('ctxCopy')}</span>`;
-      const ctxDelete = document.getElementById('ctx-item-delete');
-      if (ctxDelete) ctxDelete.innerHTML = `<span>🗑️</span> <span>${t('ctxDelete')}</span>`;
+      const ctxEditText = document.getElementById('ctx-item-edit-text');
+      if (ctxEditText) ctxEditText.innerText = t('ctxEdit');
+      const ctxCopyText = document.getElementById('ctx-item-copy-text');
+      if (ctxCopyText) ctxCopyText.innerText = t('ctxCopy');
+      const ctxDeleteText = document.getElementById('ctx-item-delete-text');
+      if (ctxDeleteText) ctxDeleteText.innerText = t('ctxDelete');
 
       // Counter
       const counter = document.getElementById('acc-counter');
@@ -1833,7 +1848,13 @@
     function onContextSwitch() {
       const id = activeContextAccId;
       closeContextMenu();
-      if (id) handleSwitch(id);
+      if (id) handleSwitch(id, 'none');
+    }
+
+    function onContextSwitchGame(game) {
+      const id = activeContextAccId;
+      closeContextMenu();
+      if (id) handleSwitch(id, game);
     }
 
     function onContextCopy() {
@@ -1914,7 +1935,7 @@
       executeLaunch(product);
     }
 
-    async function executeLaunch(product) {
+    async function executeLaunch(product, force = false) {
       const isEn = currentLang === 'en';
       const prodName = product === 'lol' ? (isEn ? 'League of Legends' : 'Liên Minh Huyền Thoại') : (product === 'valorant' ? 'VALORANT' : 'Riot Client');
       showToast(isEn ? `Launching ${prodName}...` : `Đang mở ${prodName}...`, "info");
@@ -1922,13 +1943,15 @@
         const res = await fetch(`${API_BASE}/api/launch`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ product: product })
+          body: JSON.stringify({ product: product, force: force })
         });
         const data = await res.json();
         if (data.success) {
           playSfx('success');
           if (data.already_running) {
             showToast(isEn ? `${prodName} is already running! Switched to game window.` : `${prodName} đang chạy sẵn! Đã chuyển sang cửa sổ game.`, "info");
+          } else if (data.pending) {
+            showToast(data.message || (isEn ? `Launch request sent to Riot Client.` : `Đã gửi lệnh mở ${prodName} tới Riot Client.`), "info");
           } else {
             showToast(isEn ? `Launched ${prodName} successfully!` : `Đã mở ${prodName} thành công!`, "success");
           }
@@ -1942,36 +1965,36 @@
     }
 
     // SWITCH ACCOUNT ACTION
-    function handleSwitch(accId) {
+    function handleSwitch(accId, launchGameMode = 'none') {
       playSfx('click');
       if (currentLiveStatus && currentLiveStatus.match_running) {
-        pendingSwitchAction = { action: 'switch', accId: accId };
+        pendingSwitchAction = { action: 'switch', accId: accId, launchGameMode: launchGameMode };
         openModal('modal-match-warning');
         return;
       }
-      executeSwitch(accId);
+      executeSwitch(accId, launchGameMode);
     }
 
     function confirmSwitchDuringMatch() {
       closeModal('modal-match-warning');
       if (pendingSwitchAction) {
         if (pendingSwitchAction.action === 'launch') {
-          executeLaunch(pendingSwitchAction.product);
+          executeLaunch(pendingSwitchAction.product, true);
         } else if (pendingSwitchAction.action === 'switch') {
-          executeSwitch(pendingSwitchAction.accId);
+          executeSwitch(pendingSwitchAction.accId, pendingSwitchAction.launchGameMode || 'none', true);
         }
         pendingSwitchAction = null;
       }
     }
 
-    async function executeSwitch(accId) {
+    async function executeSwitch(accId, launchGameMode = 'none', force = false) {
       const isEn = currentLang === 'en';
       showToast(isEn ? "Verifying and switching account..." : "Đang kiểm tra và chuyển tài khoản...", "info");
       try {
         const res = await fetch(`${API_BASE}/api/accounts/switch`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: accId, launch: 'none' })
+          body: JSON.stringify({ id: accId, launch: launchGameMode, force: force })
         });
         const data = await res.json();
         if (data.success) {

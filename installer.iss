@@ -1,6 +1,6 @@
 ; Inno Setup Script for Riot Account Switcher
 #define MyAppName "Riot Account Switcher"
-#define MyAppVersion "1.1.1"
+#define MyAppVersion "1.1.2"
 #define MyAppPublisher "vietanh210304"
 #define MyAppURL "https://github.com/vietanh210304/riot-account-switcher"
 #define MyAppExeName "RiotAccountSwitcher.exe"

@@ -7,6 +7,9 @@ import shutil
 import base64
 import subprocess
 import urllib.parse
+import urllib.request
+import urllib.error
+import ssl
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 
@@ -365,34 +368,119 @@ def is_game_running(product="league_of_legends"):
         val_procs = ["valorant.exe", "valorant-win64-shipping.exe"]
         return any(p in running for p in val_procs)
 
-def launch_riot_product(product="league_of_legends", patchline="live"):
+def launch_riot_product(product="league_of_legends", patchline="live", force=False):
     # Normalize product
     prod_id = "league_of_legends" if product in ("lol", "league_of_legends") else "valorant"
+    other_prod = "valorant" if prod_id == "league_of_legends" else "league_of_legends"
+    prod_label = "Liên Minh Huyền Thoại" if prod_id == "league_of_legends" else "VALORANT"
+    other_label = "VALORANT" if prod_id == "league_of_legends" else "Liên Minh Huyền Thoại"
 
-    # 1. If game is already running, focus window and return already_running
+    # 1. If this exact game is already running, focus window and return already_running
     if is_game_running(prod_id):
         focused = focus_game_window(prod_id)
+        # Also try Riot Client's default product focus API
+        lock = read_riot_lockfile()
+        if lock:
+            try:
+                auth = base64.b64encode(f"riot:{lock['password']}".encode()).decode()
+                ctx = ssl.create_default_context()
+                ctx.check_hostname = False
+                ctx.verify_mode = ssl.CERT_NONE
+                f_url = f"https://127.0.0.1:{lock['port']}/product-launcher/v1/default-product/focus"
+                f_req = urllib.request.Request(f_url, headers={"Authorization": f"Basic {auth}", "Content-Type": "application/json"}, method="POST", data=b"{}")
+                urllib.request.urlopen(f_req, context=ctx, timeout=2)
+            except Exception:
+                pass
         return {"success": True, "already_running": True, "product": prod_id, "focused": focused}
 
-    # 2. Launch via RiotClientServices.exe CLI (Rock-solid official launcher)
-    exe = find_riot_client_services()
-    if not exe:
-        return {"success": False, "error": "Không tìm thấy RiotClientServices.exe"}
+    # 2. Check conflict with the other game (Riot Vanguard restricts 2 games running simultaneously)
+    if is_game_running(other_prod):
+        match_status = check_process_status()
+        if match_status.get("match_running") and not force:
+            return {
+                "success": False,
+                "conflict": True,
+                "error": f"Đang có trận đấu {other_label} diễn ra! Không thể mở {prod_label} lúc này."
+            }
+        elif force:
+            kill_riot_processes(force=True)
+            time.sleep(1)
+        else:
+            return {
+                "success": False,
+                "conflict": True,
+                "error": f"{other_label} đang chạy trên máy. Riot Vanguard chỉ cho phép mở 1 game cùng lúc. Vui lòng đóng {other_label} trước!"
+            }
 
-    try:
-        DETACHED_PROCESS = 0x00000008
-        CREATE_NEW_PROCESS_GROUP = 0x00000200
-        subprocess.Popen(
-            [exe, f"--launch-product={prod_id}", f"--launch-patchline={patchline}"],
-            cwd=str(Path(exe).parent),
-            creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
-            close_fds=True
-        )
-        return {"success": True, "product": prod_id}
-    except Exception as e:
-        return {"success": False, "error": f"Lỗi khởi chạy {prod_id} qua Riot Client: {e}"}
+    # 3. Check if Riot Client is running
+    lock = read_riot_lockfile()
+    api_triggered = False
 
-def switch_to_account(account_id, launch_mode="none"):
+    # 3a. If Riot Client is running, trigger launch via its internal REST API
+    if lock:
+        try:
+            auth = base64.b64encode(f"riot:{lock['password']}".encode()).decode()
+            ctx = ssl.create_default_context()
+            ctx.check_hostname = False
+            ctx.verify_mode = ssl.CERT_NONE
+            url = f"https://127.0.0.1:{lock['port']}/product-launcher/v1/products/{prod_id}/patchlines/{patchline}"
+            req = urllib.request.Request(
+                url,
+                headers={"Authorization": f"Basic {auth}", "Content-Type": "application/json"},
+                method="POST",
+                data=b"{}"
+            )
+            with urllib.request.urlopen(req, context=ctx, timeout=5) as resp:
+                if resp.status in (200, 204):
+                    api_triggered = True
+        except urllib.error.HTTPError as e:
+            if e.code == 423:
+                # already launched
+                focus_game_window(prod_id)
+                return {"success": True, "already_running": True, "product": prod_id}
+        except Exception:
+            pass
+
+    # 3b. If REST API wasn't triggered (Riot Client cold start or API fallback), use CLI
+    if not api_triggered:
+        exe = find_riot_client_services()
+        if not exe:
+            return {"success": False, "error": "Không tìm thấy RiotClientServices.exe"}
+        try:
+            DETACHED_PROCESS = 0x00000008
+            CREATE_NEW_PROCESS_GROUP = 0x00000200
+            subprocess.Popen(
+                [exe, f"--launch-product={prod_id}", f"--launch-patchline={patchline}"],
+                cwd=str(Path(exe).parent),
+                creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
+                close_fds=True
+            )
+        except Exception as e:
+            return {"success": False, "error": f"Lỗi khởi chạy {prod_id} qua Riot Client: {e}"}
+
+    # 4. Polling verification loop (up to 8 seconds) to verify the game actually launched
+    for _ in range(16):
+        time.sleep(0.5)
+        if is_game_running(prod_id):
+            focus_game_window(prod_id)
+            return {"success": True, "product": prod_id}
+
+    # 5. Fallback check: Did Riot Client at least open?
+    cur_lock = read_riot_lockfile()
+    if cur_lock:
+        open_riot_client()
+        return {
+            "success": True,
+            "pending": True,
+            "message": f"Đã gửi lệnh mở {prod_label} tới Riot Client. Cửa sổ Riot Client đang hiển thị để bạn vào game."
+        }
+    else:
+        return {
+            "success": False,
+            "error": f"Không thể khởi chạy {prod_label}. Hãy mở Riot Client để kiểm tra cập nhật game."
+        }
+
+def switch_to_account(account_id, launch_mode="none", force=False):
     snap_dir = SNAPSHOTS_DIR / account_id
     if not snap_dir.exists():
         return {"success": False, "error": f"Không tìm thấy dữ liệu sao lưu cho tài khoản {account_id}."}
@@ -620,17 +708,19 @@ class RiotSwitcherHandler(SimpleHTTPRequestHandler):
         if path == "/api/accounts/switch":
             acc_id = payload.get("id")
             launch_mode = payload.get("launch", "none")
-            res = switch_to_account(acc_id, launch_mode)
+            force = payload.get("force", False)
+            res = switch_to_account(acc_id, launch_mode, force=force)
             self.send_json(res)
             return
 
         if path == "/api/launch":
             product = payload.get("product", "lol")
+            force = payload.get("force", False)
             if product == "client":
                 res = open_riot_client()
             else:
                 prod_id = "league_of_legends" if product in ("lol", "league_of_legends") else "valorant"
-                res = launch_riot_product(prod_id, "live")
+                res = launch_riot_product(prod_id, "live", force=force)
             self.send_json(res)
             return
 
