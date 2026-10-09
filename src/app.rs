@@ -148,6 +148,7 @@ pub struct App {
 impl App {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         let _ = core::ensure_dirs();
+        install_fonts(&cc.egui_ctx);
         apply_visuals(&cc.egui_ctx);
 
         let (tx, rx) = channel();
@@ -211,7 +212,7 @@ impl App {
                 Bg::Capture(Ok(acc)) => {
                     self.modal = Modal::None;
                     let t = self.t();
-                    self.toast(ctx, format!("✓ {}", acc.riot_id()), ToastKind::Success);
+                    self.toast(ctx, format!("✔ {}", acc.riot_id()), ToastKind::Success);
                     let _ = t;
                     bg(&self.tx, || Bg::Accounts(core::load_accounts()));
                 }
@@ -241,7 +242,7 @@ impl App {
                     if res.success {
                         let t = self.t();
                         let msg = if res.already_running {
-                            format!("{} ✓", t.ready_play)
+                            format!("{} ✔", t.ready_play)
                         } else if res.pending && !res.message.is_empty() {
                             res.message.clone()
                         } else {
@@ -1359,6 +1360,39 @@ fn load_avatar_texture(ctx: &egui::Context, id: &str) -> Option<egui::TextureHan
     let (w, h) = rgba.dimensions();
     let color = egui::ColorImage::from_rgba_unmultiplied([w as usize, h as usize], rgba.as_raw());
     Some(ctx.load_texture(id, color, egui::TextureOptions::LINEAR))
+}
+
+/// Nhúng font để hiển thị đúng tiếng Việt và emoji (không bị ô vuông tofu).
+///
+/// - Font mặc định của egui (Ubuntu-Light) thiếu nhiều glyph tiếng Việt nên các
+///   ký tự như "ệ", "ộ", "ữ"... bị thay bằng ô vuông. Ta đặt Be Vietnam Pro lên
+///   đầu danh sách nhưng vẫn giữ font mặc định làm fallback.
+/// - Bộ emoji mặc định của egui chỉ có một tập con, thiếu các ký tự như 🛑 🟢 🧹.
+///   Noto Emoji (đầy đủ) được thêm vào cuối làm fallback nên mọi emoji hiển thị đúng.
+fn install_fonts(ctx: &egui::Context) {
+    let mut fonts = egui::FontDefinitions::default();
+
+    fonts.font_data.insert(
+        "be_vietnam_pro".to_owned(),
+        egui::FontData::from_static(include_bytes!("../assets/fonts/BeVietnamPro-Regular.ttf")),
+    );
+    fonts.font_data.insert(
+        "be_vietnam_pro_semibold".to_owned(),
+        egui::FontData::from_static(include_bytes!("../assets/fonts/BeVietnamPro-SemiBold.ttf")),
+    );
+    fonts.font_data.insert(
+        "noto_emoji_full".to_owned(),
+        egui::FontData::from_static(include_bytes!("../assets/fonts/NotoEmoji-Regular.ttf")),
+    );
+
+    for family in [egui::FontFamily::Proportional, egui::FontFamily::Monospace] {
+        let list = fonts.families.entry(family).or_default();
+        list.insert(0, "be_vietnam_pro".to_owned());
+        list.insert(1, "be_vietnam_pro_semibold".to_owned());
+        list.push("noto_emoji_full".to_owned());
+    }
+
+    ctx.set_fonts(fonts);
 }
 
 fn apply_visuals(ctx: &egui::Context) {
