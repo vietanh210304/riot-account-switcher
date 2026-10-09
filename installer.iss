@@ -1,6 +1,6 @@
 ; Inno Setup Script for Riot Account Switcher
 #define MyAppName "Riot Account Switcher"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "2.0.0"
 #define MyAppPublisher "vietanh210304"
 #define MyAppURL "https://github.com/vietanh210304/riot-account-switcher"
 #define MyAppExeName "RiotAccountSwitcher.exe"
@@ -32,8 +32,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-Source: "dist\RiotAccountSwitcher-Portable.exe"; DestDir: "{app}"; DestName: "{#MyAppExeName}"; Flags: ignoreversion
+Source: "targeteleaseiot-account-switcher.exe"; DestDir: "{app}"; DestName: "{#MyAppExeName}"; Flags: ignoreversion
 Source: "assets\icon.ico"; DestDir: "{app}\assets"; Flags: ignoreversion
+Source: "assets\avatars\*.png"; DestDir: "{app}\assets\avatars"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\assets\icon.ico"

@@ -1,7 +1,7 @@
 # ⚡ Riot Account Switcher (LoL & VALORANT)
 
 <p align="center">
-  <img src="web/assets/icon_256.png" width="128" height="128" alt="Riot Account Switcher Logo">
+  <img src="assets/icon_256.png" width="128" height="128" alt="Riot Account Switcher Logo">
   <br>
   <strong>High-speed, privacy-first Riot Games account switcher for Windows</strong>
   <br>
@@ -17,6 +17,7 @@
     <img src="https://img.shields.io/github/v/release/vietanh210304/riot-account-switcher?style=flat-square&color=c8aa6e" alt="Latest Release">
   </a>
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011-0ac8b9?style=flat-square" alt="Platform">
+  <img src="https://img.shields.io/badge/Built%20with-Rust-orange?style=flat-square" alt="Rust">
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-ff4655?style=flat-square" alt="License">
   </a>
@@ -32,6 +33,7 @@
 
 - ⚡ **One-Click Instant Account Swapping:** Effortlessly switch between Riot Games accounts in seconds without re-entering credentials or 2FA codes.
 - 🎯 **Native Game Launching & Auto-Focus:** Seamlessly launch League of Legends or VALORANT using Riot's official CLI launcher (`RiotClientServices.exe`). If the game is already running, it automatically switches and brings the game window to the foreground.
+- 🦀 **Fully Native Rust UI (egui/eframe):** A single, self-contained native desktop application — no embedded browser, no WebView2 runtime, no Python. Fast startup, tiny footprint, native rendering.
 - 🌐 **Bilingual Support (English & Tiếng Việt):** Instant on-the-fly language toggle between English and Vietnamese across all app screens and dialogs.
 - 🖱️ **Right-Click Context Menu & Inline Editing:**
   - Edit display Riot ID & tagline (`#tag`).
@@ -49,7 +51,7 @@
 👉 Grab the pre-built packages from **[Releases](https://github.com/vietanh210304/riot-account-switcher/releases/latest)**:
 
 - 📦 **Installer (`RiotAccountSwitcher-Setup.exe`):** Standard Windows installer that sets up Start Menu shortcuts, Desktop icon, and an uninstaller in Windows Settings.
-- 🚀 **Portable (`RiotAccountSwitcher-Portable.exe`):** Single-file standalone executable with zero installation required. Run directly from anywhere!
+- 🚀 **Portable (`riot-account-switcher.exe`):** Single-file standalone executable with zero installation required. Run directly from anywhere!
 
 ---
 
@@ -57,30 +59,35 @@
 
 ### Prerequisites:
 - Windows 10 / 11 (64-bit)
-- Python 3.10+
-- Microsoft Edge WebView2 Runtime (pre-installed on Windows 10/11)
+- [Rust toolchain](https://rustup.rs/) (stable). On Windows the **GNU** toolchain is fully supported and needs no Visual Studio install:
+  ```bash
+  rustup default stable-x86_64-pc-windows-gnu
+  ```
+- A C toolchain for the linker (e.g. [WinLibs MinGW-w64](https://winlibs.com/)) available on `PATH`.
 
 ### Setup & Installation:
 ```bash
 git clone https://github.com/vietanh210304/riot-account-switcher.git
 cd riot-account-switcher
-pip install -r requirements.txt
 ```
-> `requirements.txt` covers the runtime dependencies (`psutil`, `pywebview`). Add `pyinstaller` and `pillow` only if you plan to build the `.exe` yourself:
-> ```bash
-> pip install pyinstaller pillow
-> ```
 
 ### Run in Development Mode:
 ```bash
-python app.py
+cargo run
 ```
 
-### Build Single-File `.exe` with PyInstaller:
+### Build an optimized release binary:
 ```bash
-pyinstaller --noconsole --onefile --icon "assets/icon.ico" --name "RiotAccountSwitcher" --add-data "web;web" --add-data "assets;assets" --add-data "backend.py;." app.py -y
+cargo build --release
 ```
-The compiled binary will be generated at `dist/RiotAccountSwitcher.exe`.
+The compiled binary is generated at `target/release/riot-account-switcher.exe`. It reads its avatar images from the `assets/` folder next to the executable (or from the project directory during development).
+
+### Build the Windows installer:
+Compile the release binary first, then build `installer.iss` with [Inno Setup](https://jrsoftware.org/isinfo.php):
+```bash
+iscc installer.iss
+```
+The installer is generated at `dist/RiotAccountSwitcher-Setup.exe`.
 
 ---
 

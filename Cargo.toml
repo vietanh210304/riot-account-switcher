@@ -1,0 +1,33 @@
+[package]
+name = "riot-account-switcher"
+version = "2.0.0"
+edition = "2021"
+description = "Riot Account Switcher - LoL & Valorant (native Rust)"
+authors = ["vietanh210304"]
+
+[dependencies]
+eframe = { version = "0.29", default-features = false, features = ["glow", "default_fonts", "persistence"] }
+egui = "0.29"
+egui_extras = { version = "0.29", features = ["image"] }
+image = { version = "0.25", default-features = false, features = ["png", "ico"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
+sysinfo = "0.32"
+windows = { version = "0.58", features = [
+    "Win32_Foundation",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_Threading",
+] }
+ureq = { version = "2.10", features = ["native-tls", "json"] }
+native-tls = "0.2"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[[bin]]
+name = "riot-account-switcher"
+path = "src/main.rs"
