@@ -38,6 +38,16 @@ RIOT_CLIENT_CONFIG = Path(LOCALAPPDATA) / "Riot Games" / "Riot Client" / "Config
 RIOT_PRIVATE_SETTINGS = RIOT_CLIENT_DATA / "RiotGamesPrivateSettings.yaml"
 TCNO_RIOT_CACHE = Path(APPDATA) / "TcNo Account Switcher" / "LoginCache" / "Riot Games"
 
+APP_VERSION = "1.2.0"
+
+# Files that must NEVER be stored inside a per-account snapshot:
+#  - ClientConfiguration.json: ~17 MB machine-level config cache (doc_version + public[]
+#    client settings). It holds NO account credentials and Riot regenerates it on demand,
+#    so copying it into every snapshot only wastes tens of MB per account.
+#  - lockfile: a tiny file describing the PID/port of a *running* Riot Client. Restoring a
+#    stale lockfile makes Riot believe a dead session is still alive -> launch failures.
+SNAPSHOT_EXCLUDE_FILES = {"ClientConfiguration.json", "lockfile"}
+
 import hashlib
 
 def safe_id(name, tag):
@@ -208,23 +218,57 @@ def save_accounts(accounts):
     with open(ACCOUNTS_FILE, "w", encoding="utf-8") as f:
         json.dump(accounts, f, indent=2, ensure_ascii=False)
 
-def copy_tree_safe(src_dir, dst_dir):
+def copy_tree_safe(src_dir, dst_dir, exclude_names=None):
+    """Copy a directory tree, skipping any file whose *name* is in exclude_names.
+
+    Returns (copied, skipped) counts so callers can report progress.
+    """
     src = Path(src_dir)
     dst = Path(dst_dir)
     if not src.exists():
-        return
+        return (0, 0)
+    exclude = set(exclude_names or ())
     dst.mkdir(parents=True, exist_ok=True)
+    copied = 0
+    skipped = 0
     for root, dirs, files in os.walk(src):
         rel = os.path.relpath(root, src)
         dest_subdir = dst / rel if rel != "." else dst
         dest_subdir.mkdir(parents=True, exist_ok=True)
         for f in files:
+            if f in exclude:
+                skipped += 1
+                continue
             s_file = Path(root) / f
             d_file = dest_subdir / f
             try:
                 shutil.copy2(s_file, d_file)
+                copied += 1
             except Exception:
                 pass
+    return (copied, skipped)
+
+def dir_size_bytes(directory):
+    """Total size (bytes) of every file under a directory tree."""
+    d = Path(directory)
+    total = 0
+    if not d.exists():
+        return 0
+    for root, _dirs, files in os.walk(d):
+        for f in files:
+            try:
+                total += (Path(root) / f).stat().st_size
+            except Exception:
+                pass
+    return total
+
+def human_size(num_bytes):
+    size = float(num_bytes)
+    for unit in ("B", "KB", "MB", "GB"):
+        if size < 1024 or unit == "GB":
+            return f"{size:.1f} {unit}" if unit != "B" else f"{int(size)} B"
+        size /= 1024
+    return f"{size:.1f} GB"
 
 def clear_dir_contents(directory):
     d = Path(directory)
@@ -265,8 +309,16 @@ def capture_current_session(account_id=None, custom_name=None, custom_tag=None, 
         shutil.rmtree(snap_dir, ignore_errors=True)
     snap_dir.mkdir(parents=True, exist_ok=True)
 
-    copy_tree_safe(RIOT_CLIENT_DATA, snap_dir / "Data")
-    copy_tree_safe(RIOT_CLIENT_CONFIG, snap_dir / "Config")
+    copied_data, skipped_data = copy_tree_safe(RIOT_CLIENT_DATA, snap_dir / "Data", SNAPSHOT_EXCLUDE_FILES)
+    copied_conf, skipped_conf = copy_tree_safe(RIOT_CLIENT_CONFIG, snap_dir / "Config", SNAPSHOT_EXCLUDE_FILES)
+
+    # Defensive: make sure no stale lockfile ever lands inside a snapshot even if a
+    # previous version already wrote one (prevents "Riot thinks it is running" bugs).
+    for stray in (snap_dir / "Config" / "lockfile", snap_dir / "Data" / "lockfile"):
+        try:
+            stray.unlink(missing_ok=True)
+        except Exception:
+            pass
 
     accounts = load_accounts()
     existing = next((a for a in accounts if a["id"] == clean_id), None)
@@ -514,9 +566,16 @@ def switch_to_account(account_id, launch_mode="none", force=False):
         snap_data = snap_dir / "Data"
         snap_config = snap_dir / "Config"
         if snap_data.exists():
-            copy_tree_safe(snap_data, RIOT_CLIENT_DATA)
+            copy_tree_safe(snap_data, RIOT_CLIENT_DATA, SNAPSHOT_EXCLUDE_FILES)
         if snap_config.exists():
-            copy_tree_safe(snap_config, RIOT_CLIENT_CONFIG)
+            copy_tree_safe(snap_config, RIOT_CLIENT_CONFIG, SNAPSHOT_EXCLUDE_FILES)
+
+        # Never carry a stale lockfile into the live profile: a lockfile points at the
+        # PID/port of a (now dead) Riot Client and makes Riot refuse to start.
+        try:
+            (RIOT_CLIENT_CONFIG / "lockfile").unlink(missing_ok=True)
+        except Exception:
+            pass
 
     # Update last_used
     for a in accounts:
@@ -599,9 +658,9 @@ def import_from_tcno():
         # Copy Data
         data_source = item / "RiotClientPrivateSettings.yaml"
         if data_source.is_dir():
-            copy_tree_safe(data_source, snap_dir / "Data")
+            copy_tree_safe(data_source, snap_dir / "Data", SNAPSHOT_EXCLUDE_FILES)
         elif (item / "Data").is_dir():
-            copy_tree_safe(item / "Data", snap_dir / "Data")
+            copy_tree_safe(item / "Data", snap_dir / "Data", SNAPSHOT_EXCLUDE_FILES)
         else:
             (snap_dir / "Data").mkdir(exist_ok=True)
             shutil.copy2(found_yaml, snap_dir / "Data" / "RiotGamesPrivateSettings.yaml")
@@ -609,9 +668,9 @@ def import_from_tcno():
         # Copy Config
         config_source = item / "RiotClientSettings.yaml"
         if config_source.is_dir():
-            copy_tree_safe(config_source, snap_dir / "Config")
+            copy_tree_safe(config_source, snap_dir / "Config", SNAPSHOT_EXCLUDE_FILES)
         elif (item / "Config").is_dir():
-            copy_tree_safe(item / "Config", snap_dir / "Config")
+            copy_tree_safe(item / "Config", snap_dir / "Config", SNAPSHOT_EXCLUDE_FILES)
 
         if acc_id not in existing_ids:
             accounts.append({
@@ -631,6 +690,125 @@ def import_from_tcno():
 
     save_accounts(accounts)
     return {"success": True, "imported": imported_count, "total": len(accounts)}
+
+def storage_report():
+    """Summarise how much disk space snapshots/backups use and how much junk
+    (legacy ClientConfiguration.json / lockfile copies) can still be reclaimed."""
+    accounts = load_accounts()
+    acc_by_id = {a["id"]: a for a in accounts}
+
+    total_snap_bytes = 0
+    junk_bytes = 0
+    junk_files = 0
+    items = []
+
+    if SNAPSHOTS_DIR.exists():
+        for snap in sorted(SNAPSHOTS_DIR.iterdir()):
+            if not snap.is_dir():
+                continue
+            size = dir_size_bytes(snap)
+            total_snap_bytes += size
+            snap_junk = 0
+            snap_junk_files = 0
+            for root, _dirs, files in os.walk(snap):
+                for f in files:
+                    if f in SNAPSHOT_EXCLUDE_FILES:
+                        try:
+                            snap_junk += (Path(root) / f).stat().st_size
+                        except Exception:
+                            pass
+                        snap_junk_files += 1
+            junk_bytes += snap_junk
+            junk_files += snap_junk_files
+            acc = acc_by_id.get(snap.name, {})
+            items.append({
+                "id": snap.name,
+                "name": acc.get("name", snap.name),
+                "tag": acc.get("tag", ""),
+                "size_bytes": size,
+                "size_human": human_size(size),
+                "junk_bytes": snap_junk,
+                "junk_human": human_size(snap_junk),
+                "junk_files": snap_junk_files,
+                "known": snap.name in acc_by_id,
+            })
+
+    backup_bytes = dir_size_bytes(BACKUPS_DIR)
+
+    return {
+        "snapshots_dir": str(SNAPSHOTS_DIR),
+        "total_bytes": total_snap_bytes,
+        "total_human": human_size(total_snap_bytes),
+        "junk_bytes": junk_bytes,
+        "junk_human": human_size(junk_bytes),
+        "junk_files": junk_files,
+        "backup_bytes": backup_bytes,
+        "backup_human": human_size(backup_bytes),
+        "items": items,
+        "exclude_files": sorted(SNAPSHOT_EXCLUDE_FILES),
+    }
+
+def prune_storage(account_ids=None, include_backups=True):
+    """Delete legacy junk files (ClientConfiguration.json / lockfile) that older
+    versions copied into snapshots. With account_ids=None every snapshot is
+    cleaned; otherwise only the listed account ids. Returns bytes reclaimed."""
+    reclaimed = 0
+    removed = 0
+    cleaned_accounts = []
+
+    targets = []
+    if account_ids:
+        for aid in account_ids:
+            d = SNAPSHOTS_DIR / aid
+            if d.is_dir():
+                targets.append(d)
+    elif SNAPSHOTS_DIR.exists():
+        targets = [d for d in SNAPSHOTS_DIR.iterdir() if d.is_dir()]
+
+    for snap in targets:
+        for root, _dirs, files in os.walk(snap):
+            for f in files:
+                if f in SNAPSHOT_EXCLUDE_FILES:
+                    p = Path(root) / f
+                    try:
+                        sz = p.stat().st_size
+                        p.unlink()
+                        reclaimed += sz
+                        removed += 1
+                    except Exception:
+                        pass
+        cleaned_accounts.append(snap.name)
+
+    if include_backups and BACKUPS_DIR.exists():
+        for root, _dirs, files in os.walk(BACKUPS_DIR):
+            for f in files:
+                if f in SNAPSHOT_EXCLUDE_FILES:
+                    p = Path(root) / f
+                    try:
+                        sz = p.stat().st_size
+                        p.unlink()
+                        reclaimed += sz
+                        removed += 1
+                    except Exception:
+                        pass
+
+    return {
+        "success": True,
+        "reclaimed_bytes": reclaimed,
+        "reclaimed_human": human_size(reclaimed),
+        "removed_files": removed,
+        "accounts": cleaned_accounts,
+    }
+
+def clean_live_lockfile():
+    """Remove a stale live lockfile (PID/port of a dead Riot Client)."""
+    lock = RIOT_CLIENT_CONFIG / "lockfile"
+    existed = lock.exists()
+    try:
+        lock.unlink(missing_ok=True)
+    except Exception:
+        pass
+    return {"success": True, "removed": existed}
 
 # HTTP Handler
 class RiotSwitcherHandler(SimpleHTTPRequestHandler):
@@ -670,7 +848,12 @@ class RiotSwitcherHandler(SimpleHTTPRequestHandler):
                 "active_account": active_acc,
                 "client_exe": client_exe,
                 "installed_games": installed_games,
+                "version": APP_VERSION,
             })
+            return
+
+        if path == "/api/storage":
+            self.send_json(storage_report())
             return
 
         if path == "/api/accounts":
@@ -768,6 +951,18 @@ class RiotSwitcherHandler(SimpleHTTPRequestHandler):
         if path == "/api/kill-riot":
             ok = kill_riot_processes(force=True)
             self.send_json({"success": ok})
+            return
+
+        if path == "/api/storage/prune":
+            acc_ids = payload.get("ids")
+            if isinstance(acc_ids, str):
+                acc_ids = [acc_ids]
+            res = prune_storage(acc_ids, include_backups=payload.get("include_backups", True))
+            self.send_json(res)
+            return
+
+        if path == "/api/storage/clean-lockfile":
+            self.send_json(clean_live_lockfile())
             return
 
         self.send_json({"error": "Endpoint not found"}, 404)

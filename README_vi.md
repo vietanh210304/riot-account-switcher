@@ -40,6 +40,7 @@
   - Sao chép nhanh Riot ID vào clipboard.
   - Xóa tài khoản với hộp thoại xác nhận In-App an toàn.
 - 🛡️ **Bảo mật tối đa & Lưu trữ cục bộ:** Toàn bộ dữ liệu phiên đăng nhập lưu trữ 100% trên máy tính cá nhân của bạn. Không gửi bất kỳ dữ liệu nào ra bên ngoài.
+- 🧹 **Dọn dung lượng lưu trữ tích hợp:** Dọn dẹp một chạm các tệp cấu hình rác (`ClientConfiguration.json` / `lockfile` cũ) mà các phiên bản trước lỡ sao chép vào snapshot tài khoản — giải phóng dung lượng ổ đĩa và khắc phục lỗi "không mở được game" do lockfile cũ, mà hoàn toàn không đụng đến thông tin đăng nhập đã lưu.
 
 ---
 
@@ -63,8 +64,12 @@
 ```bash
 git clone https://github.com/vietanh210304/riot-account-switcher.git
 cd riot-account-switcher
-pip install pywebview pyinstaller psutil pillow
+pip install -r requirements.txt
 ```
+> `requirements.txt` chứa các thư viện chạy ứng dụng (`psutil`, `pywebview`). Chỉ cần cài thêm `pyinstaller` và `pillow` nếu bạn muốn tự đóng gói file `.exe`:
+> ```bash
+> pip install pyinstaller pillow
+> ```
 
 ### Chạy ứng dụng chế độ phát triển:
 ```bash

@@ -40,6 +40,7 @@
   - Quick-copy Riot ID to clipboard.
   - Safe account removal with styled in-app confirmation dialog.
 - 🛡️ **100% Privacy & Local Storage:** Session tokens and snapshot data remain strictly on your local PC. No telemetry, no remote servers, no data collection.
+- 🧹 **Built-in Storage Cleanup:** One-click cleanup of leftover configuration junk (`ClientConfiguration.json` / stale `lockfile`) that older builds copied into account snapshots — reclaim disk space and fix "game won't launch" issues caused by a stale lockfile, all without touching your saved login credentials.
 
 ---
 
@@ -63,8 +64,12 @@
 ```bash
 git clone https://github.com/vietanh210304/riot-account-switcher.git
 cd riot-account-switcher
-pip install pywebview pyinstaller psutil pillow
+pip install -r requirements.txt
 ```
+> `requirements.txt` covers the runtime dependencies (`psutil`, `pywebview`). Add `pyinstaller` and `pillow` only if you plan to build the `.exe` yourself:
+> ```bash
+> pip install pyinstaller pillow
+> ```
 
 ### Run in Development Mode:
 ```bash

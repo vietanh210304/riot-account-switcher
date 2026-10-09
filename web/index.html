@@ -854,6 +854,80 @@
       box-shadow: 0 0 10px var(--accent-glow);
     }
 
+    /* Storage cleanup modal */
+    .storage-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .storage-stat {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px 10px;
+      text-align: center;
+    }
+
+    .storage-stat-label {
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .storage-stat-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .storage-stat-value.accent {
+      color: var(--accent);
+    }
+
+    .storage-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .storage-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 12.5px;
+    }
+
+    .storage-row-name {
+      color: var(--text-main);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-right: 10px;
+    }
+
+    .storage-row-size {
+      color: var(--text-sub);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .storage-row-size .junk {
+      color: var(--accent);
+    }
+
     .avatar-picker-grid {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -1022,6 +1096,9 @@
         <button class="btn btn-sm" id="btn-sync-tcno" onclick="syncFromTcNo()" title="Nhập danh sách tài khoản từ TcNo Switcher">
           🔄 Nhập từ TcNo
         </button>
+        <button class="btn btn-sm" id="btn-storage" onclick="openStorageModal()" title="Dọn dung lượng snapshot và lockfile cũ">
+          🧹 Dọn dung lượng
+        </button>
       </div>
     </div>
 
@@ -1178,6 +1255,51 @@
     </div>
   </div>
 
+  <!-- MODAL: STORAGE CLEANUP -->
+  <div class="modal-backdrop" id="modal-storage">
+    <div class="modal-dialog" style="max-width: 560px;">
+      <div class="modal-header">
+        <h2 id="modal-storage-title">🧹 Dọn dung lượng lưu trữ</h2>
+        <button class="modal-close-btn" onclick="closeModal('modal-storage')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; line-height: 1.6; color: var(--text-sub); margin-bottom: 14px;" id="modal-storage-desc">
+          Các bản snapshot cũ có thể chứa tệp cấu hình máy và lockfile cũ. Các tệp này không phải dữ liệu tài khoản và có thể xóa an toàn.
+        </p>
+
+        <div id="storage-loading" style="text-align:center; padding: 20px; color: var(--text-sub);">
+          Đang tính dung lượng...
+        </div>
+
+        <div id="storage-content" style="display:none;">
+          <div class="storage-stats">
+            <div class="storage-stat">
+              <div class="storage-stat-label" id="storage-total-label">Tổng dung lượng snapshot</div>
+              <div class="storage-stat-value" id="storage-total-value">—</div>
+            </div>
+            <div class="storage-stat">
+              <div class="storage-stat-label" id="storage-junk-label">Dung lượng rác có thể dọn</div>
+              <div class="storage-stat-value accent" id="storage-junk-value">—</div>
+            </div>
+            <div class="storage-stat">
+              <div class="storage-stat-label" id="storage-backup-label">Dung lượng bản sao lưu</div>
+              <div class="storage-stat-value" id="storage-backup-value">—</div>
+            </div>
+          </div>
+
+          <div id="storage-list" class="storage-list"></div>
+
+          <div id="storage-none" style="display:none; text-align:center; padding: 14px; color: var(--success, #2ecc71); font-size: 13.5px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer" style="flex-wrap: wrap; gap: 8px;">
+        <button class="btn btn-sm" id="btn-clean-lockfile" onclick="cleanLockfile()">Xóa lockfile cũ (sửa lỗi mở game)</button>
+        <button class="btn btn-sm btn-danger" id="btn-prune-all" onclick="pruneStorage()">Dọn tất cả</button>
+        <button class="btn btn-sm" id="btn-close-storage" onclick="closeModal('modal-storage')">Đóng</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CUSTOM CONTEXT MENU (CHUỘT PHẢI) -->
   <div class="context-menu" id="custom-context-menu">
     <div class="context-menu-item" id="context-switch-lol-btn" onclick="onContextSwitchGame('lol')">
@@ -1320,7 +1442,24 @@
         toastKilled: "Đã dừng các tiến trình Riot Games!",
         toastDeleteSuccess: "Đã xóa tài khoản thành công!",
         toastEditSuccess: "Đã cập nhật thông tin tài khoản!",
-        toastTcNoSynced: (n) => `Đã đồng bộ ${n} tài khoản từ TcNo!`
+        toastTcNoSynced: (n) => `Đã đồng bộ ${n} tài khoản từ TcNo!`,
+        btnStorage: "🧹 Dọn dung lượng",
+        modalStorageTitle: "🧹 Dọn dung lượng lưu trữ",
+        modalStorageDesc: "Các bản snapshot cũ có thể chứa tệp cấu hình máy (ClientConfiguration.json ~17MB) và lockfile cũ. Các tệp này không phải dữ liệu tài khoản và có thể xóa an toàn.",
+        storageTotal: "Tổng dung lượng snapshot",
+        storageJunk: "Dung lượng rác có thể dọn",
+        storageBackup: "Dung lượng bản sao lưu",
+        storageNone: "Không có tệp rác nào cần dọn. Tuyệt vời! 🎉",
+        storageItemJunk: (h) => `↳ Rác: ${h}`,
+        btnPruneAll: "Dọn tất cả",
+        btnCleanLockfile: "Xóa lockfile cũ (sửa lỗi mở game)",
+        toastPruning: "Đang dọn dung lượng...",
+        toastPruned: (h, n) => `Đã dọn ${h} (${n} tệp) thành công!`,
+        toastNoJunk: "Không có gì để dọn.",
+        toastLockCleaned: "Đã xóa lockfile cũ. Bạn có thể mở lại game!",
+        toastLockAbsent: "Không tìm thấy lockfile cũ.",
+        storageLoading: "Đang tính dung lượng...",
+        btnCloseStorage: "Đóng"
       },
       en: {
         appSub: "LoL & Valorant Fast Swap",
@@ -1391,7 +1530,24 @@
         toastKilled: "Stopped all Riot Games processes!",
         toastDeleteSuccess: "Account deleted successfully!",
         toastEditSuccess: "Account details updated!",
-        toastTcNoSynced: (n) => `Synced ${n} accounts from TcNo!`
+        toastTcNoSynced: (n) => `Synced ${n} accounts from TcNo!`,
+        btnStorage: "🧹 Clean Up Storage",
+        modalStorageTitle: "🧹 Clean Up Storage",
+        modalStorageDesc: "Old snapshots may contain machine config files (ClientConfiguration.json ~17MB) and stale lockfiles. These are not account data and can be safely removed.",
+        storageTotal: "Total snapshot size",
+        storageJunk: "Reclaimable junk size",
+        storageBackup: "Backup size",
+        storageNone: "No junk files to clean. All good! 🎉",
+        storageItemJunk: (h) => `↳ Junk: ${h}`,
+        btnPruneAll: "Clean All",
+        btnCleanLockfile: "Remove stale lockfile (fixes game launch)",
+        toastPruning: "Cleaning up storage...",
+        toastPruned: (h, n) => `Reclaimed ${h} (${n} files) successfully!`,
+        toastNoJunk: "Nothing to clean.",
+        toastLockCleaned: "Stale lockfile removed. You can launch the game again!",
+        toastLockAbsent: "No stale lockfile found.",
+        storageLoading: "Calculating size...",
+        btnCloseStorage: "Close"
       }
     };
 
@@ -1528,6 +1684,28 @@
       if (btnCanEdit) btnCanEdit.innerText = t('btnCancel');
       const btnSubEdit = document.getElementById('btn-submit-edit');
       if (btnSubEdit) btnSubEdit.innerText = t('btnSaveChanges');
+
+      // Modal Storage
+      const btnStorage = document.getElementById('btn-storage');
+      if (btnStorage) btnStorage.innerText = t('btnStorage');
+      const modStorageTitle = document.getElementById('modal-storage-title');
+      if (modStorageTitle) modStorageTitle.innerText = t('modalStorageTitle');
+      const modStorageDesc = document.getElementById('modal-storage-desc');
+      if (modStorageDesc) modStorageDesc.innerText = t('modalStorageDesc');
+      const stTotalLbl = document.getElementById('storage-total-label');
+      if (stTotalLbl) stTotalLbl.innerText = t('storageTotal');
+      const stJunkLbl = document.getElementById('storage-junk-label');
+      if (stJunkLbl) stJunkLbl.innerText = t('storageJunk');
+      const stBackupLbl = document.getElementById('storage-backup-label');
+      if (stBackupLbl) stBackupLbl.innerText = t('storageBackup');
+      const stLoading = document.getElementById('storage-loading');
+      if (stLoading && stLoading.style.display !== 'none') stLoading.innerText = t('storageLoading');
+      const btnPruneAll = document.getElementById('btn-prune-all');
+      if (btnPruneAll) btnPruneAll.innerText = t('btnPruneAll');
+      const btnCleanLock = document.getElementById('btn-clean-lockfile');
+      if (btnCleanLock) btnCleanLock.innerText = t('btnCleanLockfile');
+      const btnCloseStorage = document.getElementById('btn-close-storage');
+      if (btnCloseStorage) btnCloseStorage.innerText = t('btnCloseStorage');
 
       // Context menu
       const ctxLol = document.getElementById('ctx-item-switch-lol');
@@ -2188,6 +2366,97 @@
     }
     function closeModal(id) {
       document.getElementById(id).classList.remove('open');
+    }
+
+    // STORAGE CLEANUP
+    async function openStorageModal() {
+      playSfx('click');
+      const loading = document.getElementById('storage-loading');
+      const content = document.getElementById('storage-content');
+      const none = document.getElementById('storage-none');
+      loading.style.display = 'block';
+      loading.innerText = t('storageLoading');
+      content.style.display = 'none';
+      none.style.display = 'none';
+      openModal('modal-storage');
+      try {
+        const res = await fetch(`${API_BASE}/api/storage`);
+        const data = await res.json();
+        renderStorage(data);
+      } catch (e) {
+        loading.innerText = currentLang === 'en' ? 'Failed to load storage info.' : 'Không tải được thông tin dung lượng.';
+      }
+    }
+
+    function renderStorage(data) {
+      const loading = document.getElementById('storage-loading');
+      const content = document.getElementById('storage-content');
+      const none = document.getElementById('storage-none');
+      loading.style.display = 'none';
+      content.style.display = 'block';
+
+      document.getElementById('storage-total-value').innerText = data.total_human || '0 B';
+      document.getElementById('storage-junk-value').innerText = data.junk_human || '0 B';
+      document.getElementById('storage-backup-value').innerText = data.backup_human || '0 B';
+
+      const list = document.getElementById('storage-list');
+      list.innerHTML = '';
+      (data.items || []).forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'storage-row';
+        const junkPart = it.junk_bytes > 0 ? ` · <span class="junk">${t('storageItemJunk', it.junk_human)}</span>` : '';
+        row.innerHTML = `<span class="storage-row-name">${it.name || it.id}</span>` +
+          `<span class="storage-row-size">${it.size_human}${junkPart}</span>`;
+        list.appendChild(row);
+      });
+
+      if (!data.junk_bytes || data.junk_bytes === 0) {
+        none.style.display = 'block';
+        none.innerText = t('storageNone');
+      } else {
+        none.style.display = 'none';
+      }
+
+      const btnPrune = document.getElementById('btn-prune-all');
+      if (btnPrune) btnPrune.style.display = (data.junk_bytes > 0) ? 'inline-flex' : 'none';
+    }
+
+    async function pruneStorage() {
+      playSfx('click');
+      showToast(t('toastPruning'), 'info');
+      try {
+        const res = await fetch(`${API_BASE}/api/storage/prune`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ include_backups: true })
+        });
+        const data = await res.json();
+        if (data.success && data.reclaimed_bytes > 0) {
+          playSfx('success');
+          showToast(t('toastPruned', data.reclaimed_human, data.removed_files), 'success');
+        } else {
+          showToast(t('toastNoJunk'), 'info');
+        }
+        openStorageModal();
+      } catch (e) {
+        showToast(currentLang === 'en' ? 'Connection error' : 'Lỗi kết nối', 'error');
+      }
+    }
+
+    async function cleanLockfile() {
+      playSfx('click');
+      try {
+        const res = await fetch(`${API_BASE}/api/storage/clean-lockfile`, { method: 'POST' });
+        const data = await res.json();
+        if (data.removed) {
+          playSfx('success');
+          showToast(t('toastLockCleaned'), 'success');
+        } else {
+          showToast(t('toastLockAbsent'), 'info');
+        }
+      } catch (e) {
+        showToast(currentLang === 'en' ? 'Connection error' : 'Lỗi kết nối', 'error');
+      }
     }
 
     // TOASTS

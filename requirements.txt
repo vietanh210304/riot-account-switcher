@@ -1,0 +1,12 @@
+# Riot Account Switcher - Python dependencies
+#
+# Runtime: Python 3.9+
+# All other modules used by the app (os, sys, json, re, time, shutil,
+# base64, subprocess, urllib, ssl, http.server, pathlib, hashlib,
+# ctypes, threading) are part of the Python standard library.
+
+# Process detection / killing (Riot Client, League of Legends, Valorant)
+psutil>=5.9
+
+# Native desktop window that hosts the local web UI
+pywebview>=4.4
