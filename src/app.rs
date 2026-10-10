@@ -692,6 +692,9 @@ impl App {
                 } else {
                     ui.allocate_exact_size(Vec2::splat(56.0), egui::Sense::click()).1
                 };
+                if resp.hovered() {
+                    ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                }
                 if resp.clicked() {
                     edit_clicked = true;
                 }
@@ -1346,6 +1349,9 @@ fn avatar_grid(
                             }
                         })
                         .response;
+                    if resp.hovered() {
+                        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                    }
                     if resp.interact(egui::Sense::click()).clicked() {
                         *selected = av.id.to_string();
                     }
@@ -1408,6 +1414,9 @@ fn apply_visuals(ctx: &egui::Context) {
     visuals.widgets.hovered.bg_fill = Color32::from_rgb(30, 50, 80);
     visuals.widgets.active.bg_fill = Color32::from_rgb(40, 60, 95);
     visuals.selection.bg_fill = ACCENT2;
+    // Con trỏ dạng bàn tay khi hover các widget có thể bấm (Button...).
+    // egui mặc định là None nên không đổi con trỏ.
+    visuals.interact_cursor = Some(egui::CursorIcon::PointingHand);
     ctx.set_visuals(visuals);
 }
 
