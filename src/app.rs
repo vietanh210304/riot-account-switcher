@@ -641,11 +641,14 @@ impl App {
         }
 
         let accounts = self.accounts.clone();
-        ui.horizontal_wrapped(|ui| {
-            for acc in &accounts {
-                self.account_card(ui, acc);
-            }
-        });
+        ui.with_layout(
+            egui::Layout::left_to_right(egui::Align::Min).with_main_wrap(true),
+            |ui| {
+                for acc in &accounts {
+                    self.account_card(ui, acc);
+                }
+            },
+        );
     }
 
     fn account_card(&mut self, ui: &mut egui::Ui, acc: &Account) {
